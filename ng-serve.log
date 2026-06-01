@@ -1,0 +1,365 @@
+[1m[33mComponent HMR has been enabled, see https://angular.dev/hmr for more info.[39m[22m
+[33m>[39m Building...
+[32m√[39m Building...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m             [2m | [22m [1mRaw size[22m
+[32mpolyfills.js[39m       [2m | [22m[2mpolyfills[22m         [2m | [22m [36m89.77 kB[39m[2m | [22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m            [2m | [22m  [36m7.83 kB[39m[2m | [22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m              [2m | [22m  [36m4.97 kB[39m[2m | [22m
+[32mchunk-XV5ZEVRQ.js[39m  [2m | [22m[2m-[22m                 [2m | [22m  [36m2.86 kB[39m[2m | [22m
+[32mchunk-IL7J3XZL.js[39m  [2m | [22m[2m-[22m                 [2m | [22m  [36m1.14 kB[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m     [2m | [22m[1m106.57 kB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m             [2m | [22m [1mRaw size[22m
+[32mchunk-VRSTPNHO.js[39m  [2m | [22m[2mbracket-component[22m [2m | [22m [36m50.85 kB[39m[2m | [22m
+[32mchunk-EPAA3VNU.js[39m  [2m | [22m[2mregister-component[22m[2m | [22m [36m21.42 kB[39m[2m | [22m
+[32mchunk-GZH5PQ6G.js[39m  [2m | [22m[2mlogin-component[22m   [2m | [22m [36m16.62 kB[39m[2m | [22m
+[32mchunk-FOCF5OLS.js[39m  [2m | [22m[2mshell-component[22m   [2m | [22m  [36m6.52 kB[39m[2m | [22m
+[32mchunk-QHWUFDTQ.js[39m  [2m | [22m[2mhome-component[22m    [2m | [22m  [36m4.55 kB[39m[2m | [22m
+
+Application bundle generation complete. [6.915 seconds]
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m4200[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+Application bundle generation failed. [1.254 seconds]
+
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG9: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/champion/champion.component.ts:14:33:
+[37m      14 │           <div class="flag">{{ c.[32mflagEmoji[37m }}</div>
+         ╵                                  [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG9: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/group-stage/group-stage.component.ts:26:45:
+[37m      26 │                   <span class="flag">{{ team.[32mflagEmoji[37m }}</span>
+         ╵                                              [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG9: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/group-stage/group-stage.component.ts:41:28:
+[37m      41 │                     {{ team.[32mflagEmoji[37m }} {{ team.name }}
+         ╵                             [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG9: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/group-stage/group-stage.component.ts:56:28:
+[37m      56 │                     {{ team.[32mflagEmoji[37m }} {{ team.name }}
+         ╵                             [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/knockout/knockout.component.ts:125:48:
+[37m      125 │ ...ome, label: home ? `${home.[32mflagEmoji[37m} ${home.name}` : this.slo...
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/knockout/knockout.component.ts:126:48:
+[37m      126 │ ...way, label: away ? `${away.[32mflagEmoji[37m} ${away.name}` : this.slo...
+          ╵                               [32m~~~~~~~~~[0m
+
+[39m[22m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+Application bundle generation failed. [0.796 seconds]
+
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG9: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/champion/champion.component.ts:14:33:
+[37m      14 │           <div class="flag">{{ c.[32mflagEmoji[37m }}</div>
+         ╵                                  [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/knockout/knockout.component.ts:125:48:
+[37m      125 │ ...ome, label: home ? `${home.[32mflagEmoji[37m} ${home.name}` : this.slo...
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/knockout/knockout.component.ts:126:48:
+[37m      126 │ ...way, label: away ? `${away.[32mflagEmoji[37m} ${away.name}` : this.slo...
+          ╵                               [32m~~~~~~~~~[0m
+
+[39m[22m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+Application bundle generation failed. [0.688 seconds]
+
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG9: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/champion/champion.component.ts:14:33:
+[37m      14 │           <div class="flag">{{ c.[32mflagEmoji[37m }}</div>
+         ╵                                  [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/knockout/knockout.component.ts:125:48:
+[37m      125 │ ...ome, label: home ? `${home.[32mflagEmoji[37m} ${home.name}` : this.slo...
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/knockout/knockout.component.ts:126:48:
+[37m      126 │ ...way, label: away ? `${away.[32mflagEmoji[37m} ${away.name}` : this.slo...
+          ╵                               [32m~~~~~~~~~[0m
+
+[39m[22m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+Application bundle generation failed. [0.539 seconds]
+
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG9: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/champion/champion.component.ts:14:33:
+[37m      14 │           <div class="flag">{{ c.[32mflagEmoji[37m }}</div>
+         ╵                                  [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/knockout/knockout.component.ts:125:48:
+[37m      125 │ ...ome, label: home ? `${home.[32mflagEmoji[37m} ${home.name}` : this.slo...
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/knockout/knockout.component.ts:126:48:
+[37m      126 │ ...way, label: away ? `${away.[32mflagEmoji[37m} ${away.name}` : this.slo...
+          ╵                               [32m~~~~~~~~~[0m
+
+[39m[22m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+Application bundle generation failed. [0.644 seconds]
+
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG9: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/champion/champion.component.ts:14:33:
+[37m      14 │           <div class="flag">{{ c.[32mflagEmoji[37m }}</div>
+         ╵                                  [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/knockout/knockout.component.ts:135:48:
+[37m      135 │ ...ome, label: home ? `${home.[32mflagEmoji[37m} ${home.name}` : this.slo...
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/knockout/knockout.component.ts:136:48:
+[37m      136 │ ...way, label: away ? `${away.[32mflagEmoji[37m} ${away.name}` : this.slo...
+          ╵                               [32m~~~~~~~~~[0m
+
+[39m[22m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+Application bundle generation failed. [0.619 seconds]
+
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG9: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/champion/champion.component.ts:14:33:
+[37m      14 │           <div class="flag">{{ c.[32mflagEmoji[37m }}</div>
+         ╵                                  [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/knockout/knockout.component.ts:145:48:
+[37m      145 │ ...ome, label: home ? `${home.[32mflagEmoji[37m} ${home.name}` : this.slo...
+          ╵                               [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/knockout/knockout.component.ts:146:48:
+[37m      146 │ ...way, label: away ? `${away.[32mflagEmoji[37m} ${away.name}` : this.slo...
+          ╵                               [32m~~~~~~~~~[0m
+
+[39m[22m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+Application bundle generation failed. [0.508 seconds]
+
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG9: Property 'flagEmoji' does not exist on type 'Team'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/bracket/champion/champion.component.ts:14:33:
+[37m      14 │           <div class="flag">{{ c.[32mflagEmoji[37m }}</div>
+         ╵                                  [32m~~~~~~~~~[0m
+
+[39m[22m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m             [2m | [22m [1mRaw size[22m
+[32mpolyfills.js[39m       [2m | [22m[2mpolyfills[22m         [2m | [22m [36m89.77 kB[39m[2m | [22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m            [2m | [22m  [36m7.83 kB[39m[2m | [22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m              [2m | [22m  [36m4.97 kB[39m[2m | [22m
+[32mchunk-XV5ZEVRQ.js[39m  [2m | [22m[2m-[22m                 [2m | [22m  [36m2.86 kB[39m[2m | [22m
+[32mchunk-IL7J3XZL.js[39m  [2m | [22m[2m-[22m                 [2m | [22m  [36m1.14 kB[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m     [2m | [22m[1m106.57 kB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m             [2m | [22m [1mRaw size[22m
+[32mchunk-X4OQIKQ7.js[39m  [2m | [22m[2mbracket-component[22m [2m | [22m [36m54.57 kB[39m[2m | [22m
+[32mchunk-EPAA3VNU.js[39m  [2m | [22m[2mregister-component[22m[2m | [22m [36m21.42 kB[39m[2m | [22m
+[32mchunk-GZH5PQ6G.js[39m  [2m | [22m[2mlogin-component[22m   [2m | [22m [36m16.62 kB[39m[2m | [22m
+[32mchunk-FOCF5OLS.js[39m  [2m | [22m[2mshell-component[22m   [2m | [22m  [36m6.52 kB[39m[2m | [22m
+[32mchunk-QHWUFDTQ.js[39m  [2m | [22m[2mhome-component[22m    [2m | [22m  [36m4.55 kB[39m[2m | [22m
+
+Application bundle generation complete. [0.611 seconds]
+
+Page reload sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m             [2m | [22m [36m4.97 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m
+[32mchunk-XL3BFQ6B.js[39m  [2m | [22m[2mbracket-component[22m[2m | [22m[36m54.76 kB[39m[2m | [22m
+
+Application bundle generation complete. [0.625 seconds]
+
+Component update sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m             [2m | [22m [36m4.97 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m
+[32mchunk-KTWCAQVD.js[39m  [2m | [22m[2mbracket-component[22m[2m | [22m[36m54.76 kB[39m[2m | [22m
+
+Application bundle generation complete. [0.431 seconds]
+
+Page reload sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m             [2m | [22m [36m4.97 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m
+[32mchunk-7FGU66BJ.js[39m  [2m | [22m[2mbracket-component[22m[2m | [22m[36m54.80 kB[39m[2m | [22m
+
+Application bundle generation complete. [0.271 seconds]
+
+Page reload sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m             [2m | [22m [36m4.97 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m
+[32mchunk-GQ5V5TKP.js[39m  [2m | [22m[2mbracket-component[22m[2m | [22m[36m54.95 kB[39m[2m | [22m
+
+Application bundle generation complete. [0.481 seconds]
+
+Page reload sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m             [2m | [22m [36m4.97 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m
+[32mchunk-HMYSX46K.js[39m  [2m | [22m[2mbracket-component[22m[2m | [22m[36m55.06 kB[39m[2m | [22m
+
+Application bundle generation complete. [0.407 seconds]
+
+Page reload sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+Application bundle generation failed. [0.473 seconds]
+
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'clearSlots13to16KnockoutPicks' does not exist on type 'BracketService'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/core/services/bracket.service.ts:89:9:
+[37m      89 │     this.[32mclearSlots13to16KnockoutPicks[37m();
+         ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'clearSlots13to16KnockoutPicks' does not exist on type 'BracketService'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/core/services/bracket.service.ts:103:9:
+[37m      103 │     this.[32mclearSlots13to16KnockoutPicks[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+Application bundle generation failed. [0.389 seconds]
+
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'clearSlots13to16KnockoutPicks' does not exist on type 'BracketService'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/core/services/bracket.service.ts:89:9:
+[37m      89 │     this.[32mclearSlots13to16KnockoutPicks[37m();
+         ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'clearSlots13to16KnockoutPicks' does not exist on type 'BracketService'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/core/services/bracket.service.ts:103:9:
+[37m      103 │     this.[32mclearSlots13to16KnockoutPicks[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m             [2m | [22m [1mRaw size[22m
+[32mpolyfills.js[39m       [2m | [22m[2mpolyfills[22m         [2m | [22m [36m89.77 kB[39m[2m | [22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m            [2m | [22m  [36m7.83 kB[39m[2m | [22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m              [2m | [22m  [36m4.97 kB[39m[2m | [22m
+[32mchunk-XV5ZEVRQ.js[39m  [2m | [22m[2m-[22m                 [2m | [22m  [36m2.86 kB[39m[2m | [22m
+[32mchunk-IL7J3XZL.js[39m  [2m | [22m[2m-[22m                 [2m | [22m  [36m1.14 kB[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m     [2m | [22m[1m106.57 kB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m             [2m | [22m [1mRaw size[22m
+[32mchunk-M6EO72XM.js[39m  [2m | [22m[2mbracket-component[22m [2m | [22m [36m56.50 kB[39m[2m | [22m
+[32mchunk-EPAA3VNU.js[39m  [2m | [22m[2mregister-component[22m[2m | [22m [36m21.42 kB[39m[2m | [22m
+[32mchunk-GZH5PQ6G.js[39m  [2m | [22m[2mlogin-component[22m   [2m | [22m [36m16.62 kB[39m[2m | [22m
+[32mchunk-FOCF5OLS.js[39m  [2m | [22m[2mshell-component[22m   [2m | [22m  [36m6.52 kB[39m[2m | [22m
+[32mchunk-QHWUFDTQ.js[39m  [2m | [22m[2mhome-component[22m    [2m | [22m  [36m4.55 kB[39m[2m | [22m
+
+Application bundle generation complete. [0.504 seconds]
+
+Page reload sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m             [2m | [22m [36m4.97 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m
+[32mchunk-SMWVR76E.js[39m  [2m | [22m[2mbracket-component[22m[2m | [22m[36m56.73 kB[39m[2m | [22m
+
+Application bundle generation complete. [0.420 seconds]
+
+Page reload sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m             [2m | [22m [36m4.97 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m
+[32mchunk-YVH5JEDF.js[39m  [2m | [22m[2mbracket-component[22m[2m | [22m[36m75.89 kB[39m[2m | [22m
+
+Application bundle generation complete. [1.471 seconds]
+
+Page reload sent to client(s).
+[2m4:02:51 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32m✨ new dependencies optimized: [33m@angular/material/chips[32m[39m
+[2m4:02:51 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32m✨ optimized dependencies changed. reloading[39m
+^C

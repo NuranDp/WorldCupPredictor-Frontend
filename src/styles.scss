@@ -1,0 +1,18 @@
+/* You can add global styles to this file, and also import other style files */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Prevent horizontal scroll on mobile */
+body, app-root { overflow-x: hidden; }
+
+/* Make mat-table scroll on narrow screens */
+.mat-mdc-table-container, .table-card mat-card-content {
+  overflow-x: auto;
+}
+
+/* Tighten Material form fields on mobile */
+@media (max-width: 480px) {
+  .mat-mdc-form-field { font-size: 14px; }
+}
