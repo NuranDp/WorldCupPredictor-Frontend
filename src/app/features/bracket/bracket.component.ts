@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -18,7 +18,7 @@ import { CountdownComponent } from '../../shared/countdown/countdown.component';
   selector: 'app-bracket',
   standalone: true,
   imports: [
-    MatProgressBarModule,
+    MatProgressBarModule, RouterLink,
     GroupStageComponent, KnockoutComponent, ChampionComponent,
     CountdownComponent,
     FormsModule,
@@ -51,6 +51,7 @@ import { CountdownComponent } from '../../shared/countdown/countdown.component';
 
         <!-- Right: action buttons -->
         <div class="header-actions">
+          <a class="hdr-btn rules-btn" routerLink="/rules">Rules</a>
           <button class="hdr-btn drafts-btn" (click)="openDraftsDrawer()">
             📋 My Drafts
             @if (drafts().length > 0) {
@@ -323,6 +324,14 @@ import { CountdownComponent } from '../../shared/countdown/countdown.component';
       transform: none !important;
       box-shadow: none !important;
     }
+
+    /* Rules button */
+    .rules-btn {
+      background: transparent; text-decoration: none;
+      color: rgba(255,255,255,0.65); border: 1.5px dashed rgba(255,255,255,0.25);
+      box-shadow: none;
+    }
+    .rules-btn:hover { color: white; border-color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.06); }
 
     /* My Drafts button — outlined style */
     .drafts-btn {

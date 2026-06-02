@@ -143,6 +143,7 @@ const HOW_STEPS = [
         <div class="hero-cta">
           <a class="cta-primary" routerLink="/bracket">Fill My Bracket →</a>
           <a class="cta-secondary" routerLink="/leaderboard">View Scores</a>
+          <a class="cta-rules" routerLink="/rules">Rules</a>
         </div>
       </div>
 
@@ -497,6 +498,13 @@ const HOW_STEPS = [
       text-decoration: none; transition: all 0.18s ease; white-space: nowrap;
     }
     .cta-secondary:hover { border-color: rgba(255,255,255,0.52); color: white; background: rgba(255,255,255,0.08); }
+    .cta-rules {
+      display: inline-flex; align-items: center; gap: 4px;
+      color: rgba(255,255,255,0.5); font-size: 0.82rem; font-weight: 600;
+      text-decoration: none; transition: color 0.18s; white-space: nowrap;
+      padding: 4px 2px; border-bottom: 1px dashed rgba(255,255,255,0.25);
+    }
+    .cta-rules:hover { color: rgba(255,255,255,0.85); border-bottom-color: rgba(255,255,255,0.5); }
 
     /* ── Hero slot machine (right column) ───────────────────────── */
     .hero-figure {

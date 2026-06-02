@@ -60,6 +60,7 @@ export interface Best3rdPick {
 
 export interface BracketDto {
   id: number;
+  shareToken: string;
   isLocked: boolean;
   totalPoints: number;
   submittedAt: string;

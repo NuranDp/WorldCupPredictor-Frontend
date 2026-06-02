@@ -18,6 +18,7 @@ export class BracketService {
   isLocked = signal(false);
   totalPoints = signal(0);
   bracketId = signal<number | null>(null);
+  shareToken = signal<string | null>(null);
   tier = signal<'Bronze' | 'Silver' | 'Gold'>('Bronze');
 
   // All teams from the tournament, keyed by id for quick lookup
@@ -60,6 +61,7 @@ export class BracketService {
     this.isLocked.set(false);
     this.totalPoints.set(0);
     this.bracketId.set(null);
+    this.shareToken.set(null);
     this.tier.set('Bronze');
     this.teamMap.set({});
     localStorage.removeItem(BracketService.CACHE_KEY);
@@ -81,8 +83,8 @@ export class BracketService {
     );
   }
 
-  loadSharedBracket(bracketId: number): Observable<BracketDto> {
-    return this.http.get<BracketDto>(`${this.api}/share/${bracketId}`).pipe(
+  loadSharedBracket(token: string): Observable<BracketDto> {
+    return this.http.get<BracketDto>(`${this.api}/share/${token}`).pipe(
       tap(b => this.applyBracket(b))
     );
   }
@@ -194,11 +196,19 @@ export class BracketService {
     if (slotNumber <= 16) {
       return this.resolveR32Team(slotNumber, side);
     }
-    // For R16+, the team comes from the winner of a previous slot
     const children = BRACKET_TREE[slotNumber];
     if (!children) return null;
     const childSlot = side === 'home' ? children[0] : children[1];
     const childPick = this.knockoutPicks().find(p => p.slotNumber === childSlot);
+
+    // Slot 31 is the 3rd place match — show the LOSER of each semi-final
+    if (slotNumber === 31) {
+      if (!childPick?.pickedTeamId) return null;
+      const sfHome = this.resolveTeamForSlot(childSlot, 'home');
+      const sfAway = this.resolveTeamForSlot(childSlot, 'away');
+      if (!sfHome || !sfAway) return null;
+      return childPick.pickedTeamId === sfHome.id ? sfAway : sfHome;
+    }
     return childPick?.pickedTeamId ? this.getTeam(childPick.pickedTeamId) : null;
   }
 
@@ -301,6 +311,7 @@ export class BracketService {
   private applyBracket(b: BracketDto): void {
     if (!b) return; // 204 No Content when user has no bracket yet
     this.bracketId.set(b.id);
+    this.shareToken.set(b.shareToken ?? null);
     this.isLocked.set(b.isLocked);
     this.totalPoints.set(b.totalPoints);
     this.tier.set((b.tier as 'Bronze' | 'Silver' | 'Gold') ?? 'Bronze');

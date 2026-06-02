@@ -134,13 +134,15 @@ const ROUNDS: RoundConfig[] = [
                     <input class="score-input gd-input"
                            type="number" min="0" max="20"
                            placeholder="?"
-                           [disabled]="false"
                            [ngModel]="m.homeScore"
                            (ngModelChange)="updateScore(m.matchId, $event, null)"
                            (input)="clampScore($event)"
                            (click)="$event.stopPropagation()">
                     <span class="gd-label">goals</span>
                   </div>
+                  @if (m.homeScore === 0) {
+                    <div class="penalty-hint">🔴 Draw — pick the penalties winner ↓</div>
+                  }
                 }
 
                 <!-- Gold: exact scoreline (H : A) -->
@@ -149,7 +151,6 @@ const ROUNDS: RoundConfig[] = [
                     <input class="score-input"
                            type="number" min="0" max="20"
                            placeholder="–"
-                           [disabled]="false"
                            [ngModel]="m.homeScore"
                            (ngModelChange)="updateScore(m.matchId, $event, m.awayScore, m.home.team!.id, m.away.team!.id)"
                            (input)="clampScore($event)"
@@ -158,12 +159,17 @@ const ROUNDS: RoundConfig[] = [
                     <input class="score-input"
                            type="number" min="0" max="20"
                            placeholder="–"
-                           [disabled]="false"
                            [ngModel]="m.awayScore"
                            (ngModelChange)="updateScore(m.matchId, m.homeScore, $event, m.home.team!.id, m.away.team!.id)"
                            (input)="clampScore($event)"
                            (click)="$event.stopPropagation()">
+                    @if (m.homeScore !== null && m.awayScore !== null && m.homeScore === m.awayScore) {
+                      <span class="penalty-tag">PEN</span>
+                    }
                   </div>
+                  @if (m.homeScore !== null && m.awayScore !== null && m.homeScore === m.awayScore) {
+                    <div class="penalty-hint">🔴 Draw — pick the penalties winner ↓</div>
+                  }
                 }
 
                 <!-- Away team -->
@@ -187,7 +193,7 @@ const ROUNDS: RoundConfig[] = [
                 @if (m.home.team && m.away.team) {
                   <button class="rank-pick-btn"
                           tabindex="-1"
-                          (click)="pickByRanking(m.matchId, m.home.team, m.away.team, m.pickedTeamId)">
+                          (click)="pickByRanking(m.matchId, m.home.team, m.away.team, m.pickedTeamId, m.slotNumber)">
                     ★ Pick by ranking
                   </button>
                 }
@@ -447,6 +453,17 @@ const ROUNDS: RoundConfig[] = [
     .score-sep {
       font-size: 1rem; font-weight: 800; color: #bbb;
     }
+    .penalty-tag {
+      font-size: 0.58rem; font-weight: 800; letter-spacing: 0.06em;
+      background: #b71c1c; color: white;
+      border-radius: 4px; padding: 1px 4px; margin-left: 4px;
+      align-self: center;
+    }
+    .penalty-hint {
+      font-size: 0.65rem; font-weight: 600; color: #b71c1c;
+      text-align: center; margin: 2px 0 4px;
+      animation: badge-pulse 1.2s ease-in-out infinite;
+    }
 
     /* ── Team rows ───────────────────────────────────────────────── */
     .team-row {
@@ -638,10 +655,24 @@ export class KnockoutComponent {
     return 'ok';
   }
 
-  pickByRanking(matchId: number, home: Team, away: Team, current: number | null): void {
-    const better = home.fifaRanking <= away.fifaRanking ? home : away;
-    const newId  = better.id === current ? null : better.id;
+  pickByRanking(matchId: number, home: Team, away: Team, current: number | null, slotNumber: number): void {
+    const homeWins = home.fifaRanking <= away.fifaRanking;
+    const better   = homeWins ? home : away;
+    const newId    = better.id === current ? null : better.id;
     this.bracketService.setKnockoutPick(matchId, newId);
+
+    // Auto-set 1-0 score in Silver/Gold when picking by ranking
+    if (newId !== null) {
+      const tier = this.bracketService.tier();
+      if (tier === 'Gold') {
+        const h = homeWins ? 1 : 0;
+        const a = homeWins ? 0 : 1;
+        this.bracketService.setKnockoutScore(matchId, h, a);
+      } else if (tier === 'Silver') {
+        // Silver stores goal margin in homeScore
+        this.bracketService.setKnockoutScore(matchId, 1, null);
+      }
+    }
   }
 
   clampScore(event: Event): void {

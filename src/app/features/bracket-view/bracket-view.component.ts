@@ -500,8 +500,8 @@ export class BracketViewComponent implements OnInit {
   readonly THIRD = THIRD;
 
   ngOnInit(): void {
-    const shareId = this.route.snapshot.paramMap.get('id');
-    if (shareId) this.isSharedView.set(true);
+    const shareToken = this.route.snapshot.paramMap.get('id');
+    if (shareToken) this.isSharedView.set(true);
 
     forkJoin({
       groups: this.tournamentService.getGroups(),
@@ -510,8 +510,8 @@ export class BracketViewComponent implements OnInit {
       next: ({ groups, slots }) => {
         this.bracketService.loadTeams(groups);
         this.bracketService.initSlots(slots);
-        const load$ = shareId
-          ? this.bracketService.loadSharedBracket(Number(shareId))
+        const load$ = shareToken
+          ? this.bracketService.loadSharedBracket(shareToken)
           : this.bracketService.loadBracket();
         load$.subscribe({
           next:  () => this.loading.set(false),
@@ -534,10 +534,9 @@ export class BracketViewComponent implements OnInit {
 
   async copyShareLink(): Promise<void> {
     try {
-      const bracketId = this.bracketService.bracketId();
-      const url = bracketId
-        ? `${window.location.origin}/share/bracket/${bracketId}`
-        : window.location.href;
+      const token = this.bracketService.shareToken();
+      if (!token) return;
+      const url = `${window.location.origin}/share/bracket/${token}`;
       await navigator.clipboard.writeText(url);
       this.linkCopied.set(true);
       setTimeout(() => this.linkCopied.set(false), 2500);

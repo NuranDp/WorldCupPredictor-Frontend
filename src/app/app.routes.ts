@@ -43,6 +43,11 @@ export const routes: Routes = [
           import('./features/bracket-view/bracket-view.component').then(m => m.BracketViewComponent),
       },
       {
+        path: 'rules',
+        loadComponent: () =>
+          import('./features/rules/rules.component').then(m => m.RulesComponent),
+      },
+      {
         path: 'leaderboard',
         loadComponent: () =>
           import('./features/leaderboard/leaderboard.component').then(m => m.LeaderboardComponent),
