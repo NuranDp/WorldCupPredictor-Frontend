@@ -142,7 +142,7 @@ const ROUNDS: RoundConfig[] = [
                            placeholder="–"
                            [disabled]="bracketService.isLocked()"
                            [ngModel]="m.homeScore"
-                           (ngModelChange)="updateScore(m.matchId, $event, m.awayScore)"
+                           (ngModelChange)="updateScore(m.matchId, $event, m.awayScore, m.home.team!.id, m.away.team!.id)"
                            (input)="clampScore($event)"
                            (click)="$event.stopPropagation()">
                     <span class="score-sep">:</span>
@@ -151,7 +151,7 @@ const ROUNDS: RoundConfig[] = [
                            placeholder="–"
                            [disabled]="bracketService.isLocked()"
                            [ngModel]="m.awayScore"
-                           (ngModelChange)="updateScore(m.matchId, m.homeScore, $event)"
+                           (ngModelChange)="updateScore(m.matchId, m.homeScore, $event, m.home.team!.id, m.away.team!.id)"
                            (input)="clampScore($event)"
                            (click)="$event.stopPropagation()">
                   </div>
@@ -606,9 +606,18 @@ export class KnockoutComponent {
     if (clamped !== val) el.value = String(clamped);
   }
 
-  updateScore(matchId: number, homeVal: number | null, awayVal: number | null): void {
+  updateScore(matchId: number, homeVal: number | null, awayVal: number | null, homeTeamId?: number, awayTeamId?: number): void {
     const clamp = (v: number | null) => (v !== null && v !== undefined && v >= 0 ? Math.min(20, Number(v)) : null);
-    this.bracketService.setKnockoutScore(matchId, clamp(homeVal), clamp(awayVal));
+    const h = clamp(homeVal);
+    const a = clamp(awayVal);
+    this.bracketService.setKnockoutScore(matchId, h, a);
+
+    // Auto-pick winner when both scores are set and not equal
+    if (h !== null && a !== null && h !== a && homeTeamId !== undefined && awayTeamId !== undefined) {
+      const winnerId = h > a ? homeTeamId : awayTeamId;
+      const current = this.bracketService.knockoutPicks().find(p => p.matchId === matchId)?.pickedTeamId ?? null;
+      this.pick(matchId, winnerId, current);
+    }
   }
 
   pick(matchId: number, teamId: number, current: number | null): void {
