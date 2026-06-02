@@ -350,6 +350,28 @@ const HOW_STEPS = [
         </div>
       </div>
     </div>
+
+    <!-- ── Sponsor CTA ─────────────────────────────────────────────── -->
+    <div class="sponsor-section">
+      <div class="sponsor-inner">
+        <div class="sponsor-badge">🤝 Become a Sponsor</div>
+        <h3 class="sponsor-title">Be the proud sponsor of <span class="sponsor-highlight">Predict The Champion</span></h3>
+        <p class="sponsor-desc">
+          Help us give bigger and better prizes to our winners!<br>
+          Your brand in front of passionate football fans. Let's make this unforgettable together.
+        </p>
+        <a
+          href="https://www.facebook.com/share/1Ky9JzeZBq/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="sponsor-btn">
+          <svg class="sponsor-fb-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.791-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.513c-1.491 0-1.956.93-1.956 1.883v2.286h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
+          </svg>
+          Contact Us on Facebook
+        </a>
+      </div>
+    </div>
   `,
   styles: [`
     :host { display: block; }
@@ -1049,6 +1071,47 @@ const HOW_STEPS = [
       text-decoration: none; transition: all 0.18s ease;
     }
     .fta-secondary:hover { border-color: rgba(255,255,255,0.5); color: white; background: rgba(255,255,255,0.08); }
+
+    /* ── Sponsor section ─────────────────────────────────────────── */
+    .sponsor-section {
+      background: linear-gradient(135deg, #f8f9ff 0%, #eef0fb 100%);
+      border-top: 2px dashed #c5cae9;
+      padding: 48px 16px;
+      text-align: center;
+    }
+    .sponsor-inner { max-width: 600px; margin: 0 auto; }
+    .sponsor-badge {
+      display: inline-block;
+      background: #e8eaf6; color: #1a237e;
+      font-size: 0.8rem; font-weight: 700;
+      padding: 5px 14px; border-radius: 20px;
+      letter-spacing: 0.5px; margin-bottom: 16px;
+    }
+    .sponsor-title {
+      font-size: 1.5rem; font-weight: 900;
+      color: #1a237e; margin: 0 0 12px;
+      line-height: 1.3;
+    }
+    .sponsor-highlight { color: #f9a825; }
+    .sponsor-desc {
+      font-size: 0.95rem; color: #555;
+      line-height: 1.7; margin: 0 0 28px;
+    }
+    .sponsor-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: #1877f2; color: white; text-decoration: none;
+      padding: 14px 28px; border-radius: 50px;
+      font-size: 1rem; font-weight: 700;
+      box-shadow: 0 4px 14px rgba(24,119,242,0.35);
+      transition: all 0.2s;
+    }
+    .sponsor-btn:hover {
+      background: #1565c0;
+      box-shadow: 0 6px 20px rgba(24,119,242,0.45);
+      transform: translateY(-2px);
+    }
+    .sponsor-fb-icon { width: 20px; height: 20px; flex-shrink: 0; }
+    @media (min-width: 600px) { .sponsor-title { font-size: 1.8rem; } }
 
     /* ── Spin + Prizes stack ─────────────────────────────────────── */
     .spin-prizes-stack { display: flex; flex-direction: column; gap: 0; }
