@@ -48,6 +48,11 @@ export const routes: Routes = [
           import('./features/rules/rules.component').then(m => m.RulesComponent),
       },
       {
+        path: 'contact',
+        loadComponent: () =>
+          import('./features/contact/contact.component').then(m => m.ContactComponent),
+      },
+      {
         path: 'leaderboard',
         loadComponent: () =>
           import('./features/leaderboard/leaderboard.component').then(m => m.LeaderboardComponent),
