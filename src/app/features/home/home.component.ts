@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -9,7 +9,7 @@ interface TimeLeft {
 interface PrizeTier {
   id: number; place: string; medal: string; title: string;
   color: string;
-  reward: string;
+  rewards: { icon: string; label: string }[];
   criteria: { icon: string; label: string }[];
 }
 
@@ -18,32 +18,67 @@ const WC_DATE   = 'June 11, 2026';
 
 const PRIZES: PrizeTier[] = [
   {
-    id: 1, place: '3rd Place', medal: '🥉', title: 'Bronze',
-    color: 'linear-gradient(135deg,#bf360c,#e64a19)',
-    reward: '👕 Official Jersey',
+    id: 3, place: '1st Place', medal: '🥇', title: 'Gold',
+    color: 'linear-gradient(135deg,#e65100,#f9a825)',
+    rewards: [
+      { icon: '👕', label: 'Official Jersey' },
+      { icon: '⚽', label: 'Match Football' },
+      { icon: '👟', label: 'Turf Shoes' },
+    ],
     criteria: [
       { icon: '🎯', label: 'Predict the match winner' },
+      { icon: '📊', label: 'Exact scoreline' },
     ],
   },
   {
     id: 2, place: '2nd Place', medal: '🥈', title: 'Silver',
     color: 'linear-gradient(135deg,#37474f,#546e7a)',
-    reward: '👕 Jersey + ⚽ Football',
+    rewards: [
+      { icon: '👕', label: 'Official Jersey' },
+      { icon: '⚽', label: 'Match Football' },
+    ],
     criteria: [
       { icon: '🎯', label: 'Predict the match winner' },
       { icon: '📏', label: 'Goal difference' },
     ],
   },
   {
-    id: 3, place: '1st Place', medal: '🥇', title: 'Gold',
-    color: 'linear-gradient(135deg,#e65100,#f9a825)',
-    reward: '👕 Jersey + ⚽ Football + 👟 Turf Shoe',
+    id: 1, place: '3rd Place', medal: '🥉', title: 'Bronze',
+    color: 'linear-gradient(135deg,#bf360c,#e64a19)',
+    rewards: [
+      { icon: '👕', label: 'Official Jersey' },
+    ],
     criteria: [
       { icon: '🎯', label: 'Predict the match winner' },
-      { icon: '📊', label: 'Exact scoreline' },
     ],
   },
 ];
+
+const WHEEL_COLORS = [
+  '#C62828','#1565C0','#2E7D32','#6A1B9A',
+  '#E65100','#00695C','#283593','#AD1457',
+];
+const WHEEL_TEAMS = [
+  { name: 'Brazil',       iso: 'br' }, { name: 'Argentina',    iso: 'ar' },
+  { name: 'France',       iso: 'fr' }, { name: 'England',      iso: 'gb-eng' },
+  { name: 'Spain',        iso: 'es' }, { name: 'Germany',      iso: 'de' },
+  { name: 'Portugal',     iso: 'pt' }, { name: 'Netherlands',  iso: 'nl' },
+  { name: 'Belgium',      iso: 'be' }, { name: 'Croatia',      iso: 'hr' },
+  { name: 'Uruguay',      iso: 'uy' }, { name: 'Colombia',     iso: 'co' },
+  { name: 'Mexico',       iso: 'mx' }, { name: 'USA',          iso: 'us' },
+  { name: 'Canada',       iso: 'ca' }, { name: 'Morocco',      iso: 'ma' },
+  { name: 'Senegal',      iso: 'sn' }, { name: 'Japan',        iso: 'jp' },
+  { name: 'South Korea',  iso: 'kr' }, { name: 'Australia',    iso: 'au' },
+  { name: 'Switzerland',  iso: 'ch' }, { name: 'Denmark',      iso: 'dk' },
+  { name: 'Poland',       iso: 'pl' }, { name: 'Serbia',       iso: 'rs' },
+  { name: 'Ecuador',      iso: 'ec' }, { name: 'Peru',         iso: 'pe' },
+  { name: 'Saudi Arabia', iso: 'sa' }, { name: 'Iran',         iso: 'ir' },
+  { name: 'Cameroon',     iso: 'cm' }, { name: 'Tunisia',      iso: 'tn' },
+  { name: 'Costa Rica',   iso: 'cr' }, { name: 'Panama',       iso: 'pa' },
+].map((t, i) => ({ ...t, color: WHEEL_COLORS[i % WHEEL_COLORS.length] }));
+
+const SPIN_FAVOURITES = ['Brazil','Argentina','France','Spain','Portugal','England','Germany','Netherlands'];
+const SPIN_OTHERS     = WHEEL_TEAMS.map(t => t.name).filter(n => !SPIN_FAVOURITES.includes(n));
 
 const HOW_STEPS = [
   { icon: '✏️', title: 'Fill Your Bracket',  desc: 'Pick winners from the Group Stage all the way to the Final.' },
@@ -111,124 +146,89 @@ const HOW_STEPS = [
         </div>
       </div>
 
-      <!-- Right: animated player figure -->
-      <div class="hero-figure" aria-hidden="true">
-        <svg class="player-svg" viewBox="0 0 230 430" xmlns="http://www.w3.org/2000/svg" fill="none" overflow="visible">
-
-          <!-- Ball shadow (stays on ground, outside ball-group) -->
-          <ellipse cx="196" cy="226" rx="22" ry="6"
-                   fill="rgba(0,0,0,0.24)" class="ball-shadow"/>
-
-          <!-- ─── Left arm (balance, going lower-left) ─── -->
-          <line x1="65"  y1="98"  x2="40"  y2="142"
-                stroke="rgba(255,218,196,0.95)" stroke-width="14" stroke-linecap="round"/>
-          <circle cx="40" cy="142" r="7" fill="rgba(245,208,186,0.92)"/>
-          <line x1="40"  y1="142" x2="24"  y2="170"
-                stroke="rgba(245,208,186,0.90)" stroke-width="12" stroke-linecap="round"/>
-
-          <!-- ─── Left standing leg ─── -->
-          <line x1="80"  y1="202" x2="72"  y2="278"
-                stroke="rgba(255,218,196,0.95)" stroke-width="15" stroke-linecap="round"/>
-          <circle cx="72" cy="278" r="8" fill="rgba(245,208,186,0.92)"/>
-          <line x1="72"  y1="278" x2="66"  y2="354"
-                stroke="rgba(245,208,186,0.90)" stroke-width="13" stroke-linecap="round"/>
-          <!-- Left shoe -->
-          <path d="M 66,354 Q 48,362 30,358 L 26,366 Q 44,374 70,370 Q 78,368 76,358 Z"
-                fill="rgba(28,28,68,0.95)"/>
-          <line x1="38" y1="361" x2="62" y2="360"
-                stroke="rgba(255,255,255,0.24)" stroke-width="2" stroke-linecap="round"/>
-
-          <!-- ─── Torso (white jersey) ─── -->
-          <path d="M 65,82 Q 55,130 68,170 L 116,170 Q 130,130 120,82 Z"
-                fill="rgba(255,255,255,0.93)"/>
-          <!-- Jersey chest stripe -->
-          <path d="M 72,108 Q 90,116 112,108 L 110,130 Q 90,138 74,130 Z"
-                fill="rgba(160,185,255,0.30)"/>
-          <!-- V-collar -->
-          <path d="M 78,82 L 90,96 L 102,82"
-                stroke="rgba(160,185,255,0.55)" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
-
-          <!-- ─── Shorts (navy) ─── -->
-          <path d="M 68,170 L 64,202 L 120,202 L 116,170 Z"
-                fill="rgba(26,35,126,0.86)"/>
-          <line x1="92" y1="171" x2="92" y2="200"
-                stroke="rgba(255,255,255,0.10)" stroke-width="1.5"/>
-
-          <!-- ─── Right arm (raised up for balance) ─── -->
-          <line x1="120" y1="98"  x2="154" y2="72"
-                stroke="rgba(255,218,196,0.95)" stroke-width="14" stroke-linecap="round"/>
-          <circle cx="154" cy="72" r="7" fill="rgba(245,208,186,0.92)"/>
-          <line x1="154" y1="72"  x2="172" y2="50"
-                stroke="rgba(245,208,186,0.90)" stroke-width="12" stroke-linecap="round"/>
-
-          <!-- ─── Right kicking leg (animated) ─── -->
-          <g class="kick-leg">
-            <!-- Thigh -->
-            <line x1="114" y1="202" x2="148" y2="230"
-                  stroke="rgba(255,218,196,0.95)" stroke-width="15" stroke-linecap="round"/>
-            <!-- Knee joint -->
-            <circle cx="148" cy="230" r="8" fill="rgba(245,208,186,0.92)"/>
-            <!-- Shin (extended forward-up toward ball) -->
-            <line x1="148" y1="230" x2="178" y2="208"
-                  stroke="rgba(245,208,186,0.90)" stroke-width="13" stroke-linecap="round"/>
-            <!-- Right shoe -->
-            <path d="M 178,208 Q 196,200 214,204 L 218,212 Q 200,220 176,216 Q 168,214 170,208 Z"
-                  fill="rgba(28,28,68,0.95)"/>
-            <line x1="184" y1="204" x2="208" y2="207"
-                  stroke="rgba(255,255,255,0.24)" stroke-width="2" stroke-linecap="round"/>
-          </g>
-
-          <!-- ─── Head (drawn on top) ─── -->
-          <g class="p-head">
-            <!-- Neck -->
-            <line x1="90" y1="68" x2="90" y2="82"
-                  stroke="rgba(255,218,196,0.92)" stroke-width="14" stroke-linecap="round"/>
-            <!-- Head -->
-            <circle cx="90" cy="44" r="25" fill="rgba(255,218,196,0.96)"/>
-            <!-- Hair -->
-            <path d="M 66,40 Q 70,16 90,14 Q 110,16 114,40 L 113,32 Q 108,10 90,9 Q 72,10 67,32 Z"
-                  fill="rgba(70,50,30,0.82)"/>
-            <!-- Eyes -->
-            <circle cx="82" cy="44" r="3.5" fill="rgba(35,35,65,0.88)"/>
-            <circle cx="98" cy="44" r="3.5" fill="rgba(35,35,65,0.88)"/>
-            <!-- Eye shine -->
-            <circle cx="83.5" cy="42.5" r="1.2" fill="rgba(255,255,255,0.72)"/>
-            <circle cx="99.5" cy="42.5" r="1.2" fill="rgba(255,255,255,0.72)"/>
-            <!-- Smile -->
-            <path d="M 85,54 Q 90,58 95,54"
-                  stroke="rgba(160,100,80,0.65)" stroke-width="2" fill="none" stroke-linecap="round"/>
-          </g>
-
-          <!-- ─── Soccer Ball ─── -->
-          <g class="ball-group">
-            <g class="ball-squash">
-              <!-- Ball body (solid white) -->
-              <circle cx="196" cy="188" r="24"
-                      fill="rgba(255,255,255,0.97)" stroke="rgba(220,220,220,0.50)" stroke-width="1"/>
-              <!-- Classic black-patch pattern (spins) -->
-              <g class="ball-spin">
-                <!-- Centre pentagon -->
-                <polygon points="196,169 211,179 207,196 185,196 181,179"
-                         fill="rgba(18,18,18,0.84)" stroke="rgba(255,255,255,0.28)" stroke-width="0.8"/>
-                <!-- Right patch -->
-                <polygon points="211,179 224,175 226,189 218,197 207,196"
-                         fill="rgba(18,18,18,0.50)" stroke="rgba(255,255,255,0.18)" stroke-width="0.8"/>
-                <!-- Left patch -->
-                <polygon points="181,179 168,175 166,189 174,197 185,196"
-                         fill="rgba(18,18,18,0.50)" stroke="rgba(255,255,255,0.18)" stroke-width="0.8"/>
-                <!-- Top patch -->
-                <polygon points="196,169 209,163 217,172 211,179 196,169"
-                         fill="rgba(18,18,18,0.30)" stroke="rgba(255,255,255,0.15)" stroke-width="0.8"/>
-              </g>
-            </g>
-          </g>
-
-          <!-- Ground glow -->
-          <ellipse cx="80" cy="384" rx="68" ry="9" fill="rgba(255,255,255,0.04)"/>
-
-        </svg>
+      <!-- Right: slot machine reel -->
+      <div class="hero-figure">
+        <div class="hslot">
+          <div class="hslot-eyebrow">🎰 Lucky Spin</div>
+          <div class="hslot-chassis">
+            <div class="hslot-screen">
+              <div class="hslot-center-glow"></div>
+              <div class="hslot-reel" #slotReelHero>
+                @for (t of reelItems; track $index) {
+                  <div class="hslot-item" [style.--team-color]="t.color">
+                    <img class="hslot-flag" [src]="'https://flagcdn.com/32x24/' + t.iso + '.png'" [alt]="t.name" width="32" height="24">
+                    <span class="hslot-name">{{ t.name }}</span>
+                  </div>
+                }
+              </div>
+              <div class="hslot-vignette"></div>
+            </div>
+          </div>
+          <button class="hslot-btn" [class.spinning]="isSpinning" (click)="spin()" [disabled]="isSpinning">
+            @if (isSpinning) {
+              <svg class="spin-ring" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="rgba(255,255,255,0.3)" stroke-width="3"/><path d="M12 3a9 9 0 0 1 9 9" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
+              Spinning…
+            } @else { 🎰 SPIN! }
+          </button>
+          @if (spinWinner) {
+            <div class="hslot-result">🏆 {{ spinWinner.name }}</div>
+          } @else {
+            <div class="hslot-idle">Spin to find your champion!</div>
+          }
+        </div>
       </div>
 
+    </section>
+
+    <div class="spin-prizes-stack">
+    <!-- ── Lucky Spin (mobile only — hero card handles desktop) ────── -->
+    <section class="spin-section">
+      <div class="spin-head">
+        <div class="section-eyebrow">🎰 LUCKY SPIN</div>
+        <h2 class="spin-title">Who's Your Champion?</h2>
+        <p class="spin-sub">Spin the reel — let fate pick your World Cup winner!</p>
+      </div>
+
+      <div class="spin-layout">
+        <!-- Slot machine -->
+        <div class="mslot-chassis">
+          <div class="mslot-screen">
+            <div class="mslot-center-glow"></div>
+            <div class="mslot-reel" #slotReelMobile>
+              @for (t of reelItems; track $index) {
+                <div class="mslot-item" [style.--team-color]="t.color">
+                  <img class="mslot-flag" [src]="'https://flagcdn.com/32x24/' + t.iso + '.png'" [alt]="t.name" width="32" height="24">
+                  <span class="mslot-name">{{ t.name }}</span>
+                </div>
+              }
+            </div>
+            <div class="mslot-vignette"></div>
+          </div>
+        </div>
+
+        <div class="spin-right">
+          <button class="spin-btn" [class.spinning]="isSpinning" (click)="spin()" [disabled]="isSpinning">
+            @if (isSpinning) {
+              <svg class="spin-ring" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="rgba(255,255,255,0.3)" stroke-width="3"/><path d="M12 3a9 9 0 0 1 9 9" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
+              Spinning…
+            } @else { <span>🎰</span> SPIN! }
+          </button>
+
+          @if (spinWinner) {
+            <div class="spin-result">
+              <div class="spin-result-crown">🏆</div>
+              <div class="spin-result-name">{{ spinWinner.name }}</div>
+              <div class="spin-result-msg">Could be your World Cup champion!</div>
+              <button class="spin-go-btn" (click)="goToBracket(prizes[0])">Build my bracket →</button>
+            </div>
+          } @else {
+            <div class="spin-hint">
+              <div class="spin-hint-icon">⚽</div>
+              <p>Hit <strong>SPIN</strong> to find out which team fate picks for you!</p>
+            </div>
+          }
+        </div>
+      </div>
     </section>
 
     <!-- ── Prizes ─────────────────────────────────────────────────── -->
@@ -257,13 +257,25 @@ const HOW_STEPS = [
 
             <!-- Coloured banner -->
             <div class="ps-banner" [style.background]="prize.color">
-              <span class="ps-rank-label">{{ prize.place }}</span>
               <span class="ps-big-medal">{{ prize.medal }}</span>
               <span class="ps-tier-name">{{ prize.title }}</span>
             </div>
 
             <!-- Body -->
             <div class="ps-body">
+
+              <!-- Prizes — focal point -->
+              <div class="ps-prizes-label">🎁 You win:</div>
+              <div class="ps-rewards">
+                @for (r of prize.rewards; track r.label) {
+                  <div class="ps-reward-item" [class.ps-reward-gold]="prize.id === 3">
+                    <span class="ps-reward-icon">{{ r.icon }}</span>
+                    <span class="ps-reward-label">{{ r.label }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="ps-divider"></div>
 
               <div class="ps-predict-label">You predict:</div>
               <div class="ps-criteria">
@@ -275,12 +287,10 @@ const HOW_STEPS = [
                 }
               </div>
 
-              <div class="ps-prize-box">
-                <span class="ps-prize-icon">🎁</span>
-                <span class="ps-prize-value">{{ prize.reward }}</span>
-              </div>
-
-              <button class="ps-cta" [class.ps-cta-gold]="prize.id === 3"
+              <button class="ps-cta"
+                      [class.ps-cta-gold]="prize.id === 3"
+                      [class.ps-cta-silver]="prize.id === 2"
+                      [class.ps-cta-bronze]="prize.id === 1"
                       (click)="goToBracket(prize)">
                 Play for {{ prize.title }} →
               </button>
@@ -290,6 +300,7 @@ const HOW_STEPS = [
         }
       </div>
     </section>
+    </div><!-- /spin-prizes-stack -->
 
     <!-- ── How it works ───────────────────────────────────────────── -->
     <section class="how-section">
@@ -366,6 +377,7 @@ const HOW_STEPS = [
       min-height: 360px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 24px;
     }
 
@@ -486,12 +498,132 @@ const HOW_STEPS = [
     }
     .cta-secondary:hover { border-color: rgba(255,255,255,0.52); color: white; background: rgba(255,255,255,0.08); }
 
-    /* ── Player figure ───────────────────────────────────────────── */
+    /* ── Hero slot machine (right column) ───────────────────────── */
     .hero-figure {
-      position: relative; z-index: 1;
-      flex-shrink: 0; display: none;
-      align-items: flex-end; justify-content: center;
-      animation: heroIn 0.65s 0.1s both;
+      position: relative; z-index: 1; flex-shrink: 0;
+      display: none; flex-direction: column; align-items: center;
+      padding-right: 12px;
+    }
+    @media (min-width: 640px) { .hero-figure { display: flex; } }
+
+    .hslot { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .hslot-eyebrow {
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.18em; color: rgba(255,255,255,0.40);
+    }
+
+    /* Chassis */
+    .hslot-chassis {
+      background: #020813;
+      border: 2px solid transparent;
+      border-radius: 18px; padding: 5px;
+      position: relative;
+      background-clip: padding-box;
+      box-shadow:
+        0 0 0 2px rgba(249,168,37,0.7),
+        0 0 30px rgba(249,168,37,0.35),
+        0 0 60px rgba(249,168,37,0.12),
+        inset 0 0 20px rgba(0,0,0,0.8);
+      width: 260px;
+      animation: chassis-pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes chassis-pulse {
+      0%,100% { box-shadow: 0 0 0 2px rgba(249,168,37,0.7), 0 0 30px rgba(249,168,37,0.35), 0 0 60px rgba(249,168,37,0.12), inset 0 0 20px rgba(0,0,0,0.8); }
+      50%     { box-shadow: 0 0 0 2px rgba(249,168,37,1),   0 0 45px rgba(249,168,37,0.55), 0 0 90px rgba(249,168,37,0.22), inset 0 0 20px rgba(0,0,0,0.8); }
+    }
+
+    /* Screen */
+    .hslot-screen {
+      position: relative;
+      height: 264px; /* 3 × 88px */
+      overflow: hidden; border-radius: 12px;
+      background: linear-gradient(180deg, #060e1f 0%, #0a1628 50%, #060e1f 100%);
+      /* CRT scanline overlay */
+      &::after {
+        content: ''; position: absolute; inset: 0; z-index: 5; pointer-events: none;
+        background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px);
+      }
+    }
+    /* Gold selection lines */
+    .hslot-screen::before {
+      content: ''; position: absolute; left: 0; right: 0; z-index: 3;
+      top: 88px; height: 88px;
+      background: linear-gradient(180deg,
+        rgba(249,168,37,0.0) 0%,
+        rgba(249,168,37,0.12) 20%,
+        rgba(249,168,37,0.18) 50%,
+        rgba(249,168,37,0.12) 80%,
+        rgba(249,168,37,0.0) 100%
+      );
+      border-top: 1.5px solid rgba(249,168,37,0.9);
+      border-bottom: 1.5px solid rgba(249,168,37,0.9);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 -1px 12px rgba(249,168,37,0.5),
+        0  1px 12px rgba(249,168,37,0.5);
+    }
+
+    /* Center ambient glow */
+    .hslot-center-glow {
+      position: absolute; left: 0; right: 0; top: 88px; height: 88px;
+      background: radial-gradient(ellipse at center, rgba(249,168,37,0.15) 0%, transparent 70%);
+      z-index: 1; pointer-events: none;
+      animation: center-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes center-pulse {
+      0%,100% { opacity: 1; }
+      50%     { opacity: 0.4; }
+    }
+
+    /* Reel */
+    .hslot-reel {
+      position: absolute; top: 0; left: 0; right: 0;
+      will-change: transform; z-index: 2;
+    }
+    .hslot-item {
+      height: 88px; display: flex; align-items: center; gap: 12px;
+      padding: 0 18px;
+      font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.5);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      letter-spacing: 0.02em;
+      border-left: 3px solid var(--team-color, transparent);
+      box-shadow: inset 3px 0 12px -8px var(--team-color, transparent);
+    }
+    .hslot-flag { flex-shrink: 0; border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.5); object-fit: cover; }
+    .hslot-name { flex: 1; }
+
+    /* Top/bottom vignette */
+    .hslot-vignette {
+      position: absolute; inset: 0; z-index: 4; pointer-events: none;
+      background: linear-gradient(to bottom,
+        rgba(6,14,31,0.97) 0%, rgba(6,14,31,0.5) 20%,
+        transparent 33%, transparent 67%,
+        rgba(6,14,31,0.5) 80%, rgba(6,14,31,0.97) 100%
+      );
+    }
+
+    .hslot-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 28px; border: none; border-radius: 50px; cursor: pointer;
+      font-size: 0.88rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+      background: linear-gradient(135deg,#f9a825,#e65100);
+      color: white; box-shadow: 0 3px 14px rgba(249,168,37,0.45);
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    .hslot-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(249,168,37,0.60); }
+    .hslot-btn:disabled { cursor: not-allowed; }
+    .hslot-btn.spinning {
+      display: inline-flex; align-items: center; gap: 7px;
+      animation: btn-pulse 1.2s ease-in-out infinite;
+      background: linear-gradient(135deg,#e65100,#f9a825,#e65100); background-size: 200% 100%;
+      animation: btn-shimmer 1.4s linear infinite, btn-glow 1.2s ease-in-out infinite;
+    }
+    .hslot-btn .spin-ring { width: 15px; height: 15px; animation: ring-spin 0.8s linear infinite; flex-shrink: 0; }
+
+    .hslot-idle { font-size: 0.75rem; color: rgba(255,255,255,0.35); }
+    .hslot-result {
+      font-size: 0.95rem; font-weight: 800; color: white;
+      animation: resultPop 0.4s cubic-bezier(0.22,1,0.36,1) both;
     }
     .player-svg {
       width: 200px; height: auto;
@@ -509,6 +641,17 @@ const HOW_STEPS = [
       0%,100% { transform: rotate(0deg);  }
       35%     { transform: rotate(2.5deg); }
       70%     { transform: rotate(-2deg); }
+    }
+    @keyframes ring-spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes btn-shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    @keyframes btn-glow {
+      0%,100% { box-shadow: 0 4px 16px rgba(249,168,37,0.5); }
+      50%     { box-shadow: 0 4px 28px rgba(249,168,37,0.9), 0 0 40px rgba(249,168,37,0.4); }
     }
 
     /* Kick leg: rotates around right hip (114, 202)
@@ -691,19 +834,42 @@ const HOW_STEPS = [
 
     /* Banner */
     .ps-banner {
-      padding: 28px 20px 24px;
+      padding: 28px 20px 22px;
       display: flex; flex-direction: column; align-items: center; gap: 4px;
       color: white; text-align: center;
     }
-    .ps-rank-label {
-      font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.16em; opacity: 0.72;
-    }
-    .ps-big-medal { font-size: 3.4rem; line-height: 1; margin: 6px 0; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4)); }
+    .ps-big-medal { font-size: 3.4rem; line-height: 1; margin: 0 0 6px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4)); }
     .ps-tier-name { font-size: 1.5rem; font-weight: 900; letter-spacing: 0.04em; }
 
     /* Body */
     .ps-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
+
+    /* Rewards — focal */
+    .ps-prizes-label {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.14em; color: #f9a825;
+    }
+    .ps-rewards { display: flex; flex-direction: column; gap: 10px; }
+    .ps-reward-item {
+      display: flex; align-items: center; gap: 14px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 12px; padding: 12px 16px;
+      transition: background 0.18s;
+    }
+    .ps-reward-item.ps-reward-gold {
+      background: rgba(249,168,37,0.10);
+      border-color: rgba(249,168,37,0.22);
+    }
+    .ps-reward-icon { font-size: 1.6rem; flex-shrink: 0; }
+    .ps-reward-label { font-size: 0.95rem; font-weight: 700; color: white; }
+
+    /* Divider */
+    .ps-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: 2px 0;
+    }
 
     .ps-predict-label {
       font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
@@ -712,22 +878,11 @@ const HOW_STEPS = [
     .ps-criteria { display: flex; flex-direction: column; gap: 8px; }
     .ps-criterion {
       display: flex; align-items: center; gap: 10px;
-      background: rgba(255,255,255,0.07); border-radius: 10px; padding: 9px 12px;
+      background: rgba(255,255,255,0.06); border-radius: 10px; padding: 9px 12px;
       border: 1px solid rgba(255,255,255,0.06);
     }
     .ps-c-icon { font-size: 1rem; flex-shrink: 0; }
-    .ps-c-text { font-size: 0.85rem; font-weight: 500; color: rgba(255,255,255,0.85); }
-
-    /* Prize box */
-    .ps-prize-box {
-      display: flex; align-items: flex-start; gap: 10px;
-      background: rgba(249,168,37,0.08);
-      border: 1px solid rgba(249,168,37,0.18);
-      border-radius: 12px; padding: 12px 14px;
-      margin-top: 4px;
-    }
-    .ps-prize-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
-    .ps-prize-value { font-size: 0.85rem; font-weight: 600; color: white; line-height: 1.4; }
+    .ps-c-text { font-size: 0.83rem; font-weight: 500; color: rgba(255,255,255,0.75); }
 
     /* CTA button */
     .ps-cta {
@@ -752,6 +907,24 @@ const HOW_STEPS = [
     .ps-cta-gold:hover {
       box-shadow: 0 6px 24px rgba(249,168,37,0.55);
       background: linear-gradient(135deg, #ffb300, #f4511e);
+    }
+    .ps-cta-silver {
+      background: linear-gradient(135deg, #78909c, #b0bec5);
+      color: white; border-color: transparent;
+      box-shadow: 0 4px 16px rgba(176,190,197,0.30);
+    }
+    .ps-cta-silver:hover {
+      background: linear-gradient(135deg, #90a4ae, #cfd8dc);
+      box-shadow: 0 6px 24px rgba(176,190,197,0.50);
+    }
+    .ps-cta-bronze {
+      background: linear-gradient(135deg, #bf360c, #e64a19);
+      color: white; border-color: transparent;
+      box-shadow: 0 4px 16px rgba(230,74,25,0.35);
+    }
+    .ps-cta-bronze:hover {
+      background: linear-gradient(135deg, #d84315, #ff5722);
+      box-shadow: 0 6px 24px rgba(230,74,25,0.55);
     }
 
     /* ── How it works ────────────────────────────────────────────── */
@@ -869,19 +1042,163 @@ const HOW_STEPS = [
     }
     .fta-secondary:hover { border-color: rgba(255,255,255,0.5); color: white; background: rgba(255,255,255,0.08); }
 
+    /* ── Spin + Prizes stack ─────────────────────────────────────── */
+    .spin-prizes-stack { display: flex; flex-direction: column; gap: 0; }
+    @media (max-width: 639px) {
+      .prizes-section { order: 1; }
+      .spin-section   { order: 2; }
+    }
+
+    /* ── Lucky Spin section (mobile only) ───────────────────────── */
+    @media (min-width: 640px) { .spin-section { display: none; } }
+    .spin-section {
+      background: linear-gradient(160deg,#0d1b4b 0%,#1a237e 60%,#283593 100%);
+      border-radius: 24px; padding: 40px 20px 48px;
+      margin: 16px 0;
+    }
+    .spin-head { text-align: center; margin-bottom: 32px; }
+    .spin-title { font-size: 1.8rem; font-weight: 900; color: white; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .spin-sub { font-size: 0.88rem; color: rgba(255,255,255,0.50); margin: 0; }
+
+    .spin-layout {
+      display: flex; flex-direction: column; align-items: center; gap: 28px;
+      max-width: 640px; margin: 0 auto;
+    }
+
+    /* Mobile slot chassis */
+    .mslot-chassis {
+      background: #020813;
+      border-radius: 20px; padding: 6px;
+      box-shadow:
+        0 0 0 2px rgba(249,168,37,0.7),
+        0 0 40px rgba(249,168,37,0.35),
+        0 0 80px rgba(249,168,37,0.12),
+        inset 0 0 24px rgba(0,0,0,0.8);
+      width: 100%; max-width: 360px;
+      animation: chassis-pulse 2.5s ease-in-out infinite;
+    }
+    .mslot-screen {
+      position: relative;
+      height: 340px; /* 5 × 68px */
+      overflow: hidden; border-radius: 14px;
+      background: linear-gradient(180deg, #060e1f 0%, #0a1628 50%, #060e1f 100%);
+      &::after {
+        content: ''; position: absolute; inset: 0; z-index: 5; pointer-events: none;
+        background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px);
+      }
+    }
+    .mslot-screen::before {
+      content: ''; position: absolute; left: 0; right: 0; z-index: 3;
+      top: 136px; height: 68px;
+      background: linear-gradient(180deg,
+        rgba(249,168,37,0.0) 0%,
+        rgba(249,168,37,0.12) 20%,
+        rgba(249,168,37,0.18) 50%,
+        rgba(249,168,37,0.12) 80%,
+        rgba(249,168,37,0.0) 100%
+      );
+      border-top: 1.5px solid rgba(249,168,37,0.9);
+      border-bottom: 1.5px solid rgba(249,168,37,0.9);
+      box-shadow: 0 -1px 12px rgba(249,168,37,0.5), 0 1px 12px rgba(249,168,37,0.5);
+    }
+    .mslot-center-glow {
+      position: absolute; left: 0; right: 0; top: 136px; height: 68px;
+      background: radial-gradient(ellipse at center, rgba(249,168,37,0.15) 0%, transparent 70%);
+      z-index: 1; pointer-events: none;
+      animation: center-pulse 1.8s ease-in-out infinite;
+    }
+    .mslot-reel {
+      position: absolute; top: 0; left: 0; right: 0;
+      will-change: transform; z-index: 2;
+    }
+    .mslot-item {
+      height: 68px; display: flex; align-items: center; gap: 12px;
+      padding: 0 20px;
+      font-size: 0.95rem; font-weight: 600; color: rgba(255,255,255,0.5);
+      border-left: 3px solid var(--team-color, transparent);
+      box-shadow: inset 3px 0 16px -8px var(--team-color, transparent);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      letter-spacing: 0.02em;
+    }
+    .mslot-flag { flex-shrink: 0; border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.5); object-fit: cover; }
+    .mslot-name { flex: 1; }
+    .mslot-vignette {
+      position: absolute; inset: 0; z-index: 4; pointer-events: none;
+      background: linear-gradient(to bottom,
+        rgba(6,14,31,0.97) 0%, rgba(6,14,31,0.5) 18%,
+        transparent 30%, transparent 70%,
+        rgba(6,14,31,0.5) 82%, rgba(6,14,31,0.97) 100%
+      );
+    }
+
+    /* Right panel */
+    .spin-right {
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      text-align: center; width: 100%; max-width: 360px;
+    }
+
+    .spin-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 15px 40px; border: none; border-radius: 50px; cursor: pointer;
+      font-size: 1rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+      background: linear-gradient(135deg,#f9a825,#e65100); color: white;
+      box-shadow: 0 4px 20px rgba(249,168,37,0.45); transition: all 0.18s; white-space: nowrap;
+    }
+    .spin-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(249,168,37,0.60); }
+    .spin-btn:disabled { cursor: not-allowed; transform: none; }
+    .spin-btn span { font-size: 1.2rem; }
+    .spin-btn.spinning {
+      background: linear-gradient(135deg,#e65100,#f9a825,#e65100); background-size: 200% 100%;
+      animation: btn-shimmer 1.4s linear infinite, btn-glow 1.2s ease-in-out infinite;
+    }
+    .spin-btn .spin-ring { width: 18px; height: 18px; animation: ring-spin 0.8s linear infinite; flex-shrink: 0; }
+
+    .spin-hint {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 16px; padding: 18px 20px;
+    }
+    .spin-hint-icon { font-size: 1.8rem; }
+    .spin-hint p { margin: 0; font-size: 0.86rem; color: rgba(255,255,255,0.58); line-height: 1.6; }
+    .spin-hint strong { color: #f9a825; }
+
+    @keyframes resultPop {
+      from { opacity: 0; transform: scale(0.88) translateY(16px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0); }
+    }
+    @keyframes crownBounce {
+      0%   { transform: scale(0) rotate(-20deg); }
+      70%  { transform: scale(1.2) rotate(5deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+    .spin-result {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      background: rgba(249,168,37,0.10); border: 1px solid rgba(249,168,37,0.35);
+      border-radius: 20px; padding: 22px 28px; width: 100%;
+      animation: resultPop 0.45s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    .spin-result-crown { font-size: 2.2rem; animation: crownBounce 0.6s 0.2s cubic-bezier(0.22,1,0.36,1) both; }
+    .spin-result-name { font-size: 1.5rem; font-weight: 900; color: white; letter-spacing: -0.01em; }
+    .spin-result-msg { font-size: 0.80rem; color: rgba(255,255,255,0.50); }
+    .spin-go-btn {
+      margin-top: 4px; padding: 10px 22px; border: none; border-radius: 26px; cursor: pointer;
+      font-size: 0.85rem; font-weight: 700;
+      background: linear-gradient(135deg,#f9a825,#e65100); color: white;
+      box-shadow: 0 3px 12px rgba(249,168,37,0.40); transition: all 0.18s; white-space: nowrap;
+    }
+    .spin-go-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(249,168,37,0.55); }
+
     /* ── Responsive ──────────────────────────────────────────────── */
     @media (max-width: 639px) {
       .hero { display: none; }
     }
     @media (min-width: 640px) {
-      .hero { padding: 52px 40px 56px; gap: 32px; min-height: 420px; }
-      .hero-figure { display: flex; }
-      .player-svg { width: 210px; }
-      .hero-title { font-size: 3rem; }
+      .hero { padding: 48px 36px 52px; gap: 28px; min-height: 420px; }
+      .hero-title { font-size: 2.8rem; }
     }
     @media (min-width: 900px) {
-      .hero-title { font-size: 3.6rem; }
-      .player-svg { width: 240px; }
+      .hero { padding: 52px 48px 56px; gap: 40px; }
+      .hero-title { font-size: 3.4rem; }
     }
 
     /* ── Mobile-specific fixes ───────────────────────────────────── */
@@ -904,9 +1221,19 @@ const HOW_STEPS = [
     }
   `],
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+
+  @ViewChild('slotReelHero')   slotReelHeroRef!:   ElementRef<HTMLDivElement>;
+  @ViewChild('slotReelMobile') slotReelMobileRef!:  ElementRef<HTMLDivElement>;
+
+  // Reel: 80 repetitions of 32 teams = 2560 items; start at index 1280 (middle)
+  readonly reelItems = Array.from({ length: 80 }, () => WHEEL_TEAMS).flat();
+  private readonly ITEM_H      = 68;  // mobile row height
+  private readonly HERO_ITEM_H = 88;  // desktop row height
+  private readonly NUM_TEAMS   = WHEEL_TEAMS.length;
+  private currentCenterIdx    = 40 * WHEEL_TEAMS.length; // 1280
 
   prizes = PRIZES;
   steps  = HOW_STEPS;
@@ -933,26 +1260,23 @@ export class HomeComponent implements OnInit, OnDestroy {
            `animation-duration:${10 + i * 2.5}s;animation-delay:${-i * 1.5}s`;
   });
 
-  selectedPrize = signal<number | null>(null);
+  // ── Spinner state ───────────────────────────────────────────────
+  isSpinning = false;
+  spinWinner: { name: string; color: string } | null = null;
+  private rafId: number | null = null;
+
+  // ── Clock state ─────────────────────────────────────────────────
   time  = signal<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0, locked: false });
   tick  = signal(false);
-
   private sub?: Subscription;
-
-  togglePrize(id: number): void {
-    this.selectedPrize.set(this.selectedPrize() === id ? null : id);
-  }
 
   goToBracket(prize: PrizeTier): void {
     this.router.navigate(['/bracket'], { queryParams: { tier: prize.title } });
   }
 
-  selectedPrizeName(): string {
-    return PRIZES.find(p => p.id === this.selectedPrize())?.title ?? '';
-  }
-
   pad(n: number): string { return n.toString().padStart(2, '0'); }
 
+  // ── Lifecycle ───────────────────────────────────────────────────
   ngOnInit(): void {
     this.tickClock();
     this.sub = interval(1000).subscribe(() => {
@@ -962,8 +1286,71 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void { this.sub?.unsubscribe(); }
+  ngAfterViewInit(): void {
+    this.applyReelPosition(this.currentCenterIdx);
+  }
 
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+    if (this.rafId !== null) cancelAnimationFrame(this.rafId);
+  }
+
+  // ── Slot reel spin ───────────────────────────────────────────────
+  spin(): void {
+    if (this.isSpinning) return;
+    this.isSpinning = true;
+    this.spinWinner = null;
+
+    // 75% favourite, 25% other
+    const pool = Math.random() < 0.75 ? SPIN_FAVOURITES : SPIN_OTHERS;
+    const winnerName = pool[Math.floor(Math.random() * pool.length)];
+    const winnerIdx  = WHEEL_TEAMS.findIndex(t => t.name === winnerName);
+    const minTarget  = this.currentCenterIdx + this.NUM_TEAMS * 6; // ≥6 full passes
+    const remainder  = minTarget % this.NUM_TEAMS;
+    const toAdd      = (winnerIdx - remainder + this.NUM_TEAMS) % this.NUM_TEAMS;
+    const targetIdx  = minTarget + (toAdd === 0 ? this.NUM_TEAMS : toAdd);
+
+    const h          = this.ITEM_H;
+    const hh         = this.HERO_ITEM_H;
+    const heroStart  = -(this.currentCenterIdx - 1) * hh;
+    const heroEnd    = -(targetIdx - 1) * hh;
+    const mobStart   = -(this.currentCenterIdx - 2) * h;
+    const mobEnd     = -(targetIdx - 2) * h;
+    const duration   = 4200 + Math.random() * 1600; // 4.2–5.8 s
+    const startTime  = performance.now();
+
+    const animate = (now: number) => {
+      const elapsed  = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased    = 1 - Math.pow(1 - progress, 5); // ease-out quint
+
+      if (this.slotReelHeroRef?.nativeElement)
+        this.slotReelHeroRef.nativeElement.style.transform =
+          `translateY(${heroStart + (heroEnd - heroStart) * eased}px)`;
+      if (this.slotReelMobileRef?.nativeElement)
+        this.slotReelMobileRef.nativeElement.style.transform =
+          `translateY(${mobStart + (mobEnd - mobStart) * eased}px)`;
+
+      if (progress < 1) {
+        this.rafId = requestAnimationFrame(animate);
+      } else {
+        this.currentCenterIdx = targetIdx;
+        this.isSpinning = false;
+        this.spinWinner = WHEEL_TEAMS[winnerIdx];
+      }
+    };
+
+    this.rafId = requestAnimationFrame(animate);
+  }
+
+  private applyReelPosition(centerIdx: number): void {
+    if (this.slotReelHeroRef?.nativeElement)
+      this.slotReelHeroRef.nativeElement.style.transform = `translateY(${-(centerIdx - 1) * this.HERO_ITEM_H}px)`;
+    if (this.slotReelMobileRef?.nativeElement)
+      this.slotReelMobileRef.nativeElement.style.transform = `translateY(${-(centerIdx - 2) * this.ITEM_H}px)`;
+  }
+
+  // ── Clock ───────────────────────────────────────────────────────
   private tickClock(): void {
     const diff = new Date(LOCK_DATE).getTime() - Date.now();
     if (diff <= 0) {

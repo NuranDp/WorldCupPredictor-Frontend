@@ -13,7 +13,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authed).pipe(
     catchError((err: HttpErrorResponse) => {
-      if (err.status === 401 && token) {
+      if (err.status === 401 && token && !req.url.includes('/auth/refresh')) {
         return auth.refresh().pipe(
           switchMap(res => {
             const retried = req.clone({
