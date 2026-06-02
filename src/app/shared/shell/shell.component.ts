@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from '@angular/core';
+﻿import { Component, inject, computed, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -16,7 +16,7 @@ import { AuthService } from '../../core/services/auth.service';
     <aside class="drawer" [class.drawer-open]="drawerOpen()">
       <div class="drawer-header">
         <a class="brand" routerLink="/home" (click)="closeDrawer()">
-          <span class="brand-icon">⚽</span>
+          <span class="brand-icon">âš½</span>
           <span class="brand-wc">WC</span><span class="brand-year">2026</span>
         </a>
         <button class="drawer-close" (click)="closeDrawer()" aria-label="Close menu">
@@ -84,7 +84,7 @@ import { AuthService } from '../../core/services/auth.service';
 
         <!-- Brand -->
         <a class="brand" routerLink="/home">
-          <span class="brand-icon">⚽</span>
+          <span class="brand-icon">âš½</span>
           <span class="brand-wc">WC</span><span class="brand-year">2026</span>
         </a>
 
@@ -97,7 +97,7 @@ import { AuthService } from '../../core/services/auth.service';
           <a routerLink="/rules"       routerLinkActive="nav-active" class="nav-link">Rules</a>
           <a routerLink="/contact"     routerLinkActive="nav-active" class="nav-link">Contact</a>
           @if (auth.isAdmin()) {
-            <a routerLink="/admin" routerLinkActive="nav-active" class="nav-link nav-admin">⚙ Admin</a>
+            <a routerLink="/admin" routerLinkActive="nav-active" class="nav-link nav-admin">âš™ Admin</a>
           }
         </nav>
 
@@ -135,7 +135,7 @@ import { AuthService } from '../../core/services/auth.service';
   styles: [`
     :host { display: block; }
 
-    /* ── Mobile drawer ──────────────────────────────────────────── */
+    /* â”€â”€ Mobile drawer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .drawer-backdrop {
       position: fixed; inset: 0; z-index: 199;
       background: rgba(0,0,0,0.55);
@@ -223,7 +223,7 @@ import { AuthService } from '../../core/services/auth.service';
     }
     @media (min-width: 640px) { .hamburger { display: none; } }
 
-    /* ── Header ─────────────────────────────────────────────────── */
+    /* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .app-header {
       position: sticky; top: 0; z-index: 100;
       background: linear-gradient(135deg, #0d1b4b 0%, #1a237e 100%);
@@ -328,7 +328,7 @@ import { AuthService } from '../../core/services/auth.service';
     /* Page content */
     .page-content { max-width: 1280px; margin: 0 auto; padding: 16px 12px 32px; }
 
-    /* ── Responsive ─────────────────────────────────────────────── */
+    /* â”€â”€ Responsive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     @media (max-width: 360px) {
       .nav-link { padding: 0 8px; font-size: 0.78rem; }
       .guest-btn { padding: 0 10px; font-size: 0.76rem; }
@@ -370,3 +370,4 @@ export class ShellComponent {
     return name.charAt(0).toUpperCase() || '?';
   });
 }
+
