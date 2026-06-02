@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, AfterViewInit, NgZone, ElementRef } from '@angular/core';
+﻿import { Component, inject, OnInit, AfterViewInit, NgZone, ElementRef } from '@angular/core';
 import { AbstractControl, FormBuilder, ValidationErrors, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -38,9 +38,9 @@ function passwordsMatch(control: AbstractControl): ValidationErrors | null {
       <mat-card class="auth-card">
         <mat-card-header>
           <div class="logo-section">
-            <span class="trophy">🏆</span>
+            <span class="trophy">ðŸ†</span>
             <h1 class="app-title">Create Account</h1>
-            <p class="app-subtitle">World Cup 2026 Predictor</p>
+            <p class="app-subtitle">Predict The Champion</p>
           </div>
         </mat-card-header>
 
@@ -258,3 +258,4 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     });
   }
 }
+

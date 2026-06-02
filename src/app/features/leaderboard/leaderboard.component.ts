@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+﻿import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
@@ -15,10 +15,10 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
   template: `
     <div class="page-header">
       <h2>Leaderboard</h2>
-      <span class="subtitle">FIFA World Cup 2026 Predictor</span>
+      <span class="subtitle">Predict The Champion</span>
     </div>
 
-    <!-- ── Tier selector ──────────────────────────────────── -->
+    <!-- â”€â”€ Tier selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div class="tier-row">
       @for (t of tiers; track t.value) {
         <button class="tier-tab" [class.tier-tab-active]="selectedTier() === t.value"
@@ -34,7 +34,7 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
       <mat-progress-bar mode="indeterminate" />
     } @else if (entries().length === 0) {
       <div class="empty-state">
-        <div class="empty-icon">🏟️</div>
+        <div class="empty-icon">ðŸŸï¸</div>
         <div class="empty-msg">No {{ selectedTier() }} brackets submitted yet.</div>
         <div class="empty-hint">Be the first to submit a {{ selectedTier() }} prediction!</div>
       </div>
@@ -53,7 +53,7 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
           </div>
           <!-- 1st -->
           <div class="podium-slot gold">
-            <div class="podium-crown">👑</div>
+            <div class="podium-crown">ðŸ‘‘</div>
             <div class="podium-avatar">{{ initials(entries()[0].name) }}</div>
             <div class="podium-name">{{ entries()[0].name }}</div>
             <div class="podium-pts">{{ entries()[0].totalPoints }} pts</div>
@@ -79,9 +79,9 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
             <ng-container matColumnDef="rank">
               <th mat-header-cell *matHeaderCellDef>Rank</th>
               <td mat-cell *matCellDef="let e">
-                @if (e.rank === 1) { <span class="medal">🥇</span> }
-                @else if (e.rank === 2) { <span class="medal">🥈</span> }
-                @else if (e.rank === 3) { <span class="medal">🥉</span> }
+                @if (e.rank === 1) { <span class="medal">ðŸ¥‡</span> }
+                @else if (e.rank === 2) { <span class="medal">ðŸ¥ˆ</span> }
+                @else if (e.rank === 3) { <span class="medal">ðŸ¥‰</span> }
                 @else { <span class="rank-num">#{{ e.rank }}</span> }
               </td>
             </ng-container>
@@ -121,7 +121,7 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
     .page-header h2 { margin: 0; font-size: 1.6rem; font-weight: 700; }
     .subtitle { color: #888; font-size: 0.9rem; }
 
-    /* ── Tier selector ──────────────────────────────────────────── */
+    /* â”€â”€ Tier selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .tier-row {
       display: flex;
       gap: 10px;
@@ -158,7 +158,7 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
     .tt-label { font-size: 0.85rem; font-weight: 800; color: #1a237e; }
     .tt-desc  { font-size: 0.65rem; color: #888; }
 
-    /* ── Empty state ─────────────────────────────────────────────── */
+    /* â”€â”€ Empty state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .empty-state {
       display: flex; flex-direction: column; align-items: center;
       padding: 48px 24px; gap: 8px; text-align: center;
@@ -167,7 +167,7 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
     .empty-msg  { font-size: 1rem; font-weight: 600; color: #555; }
     .empty-hint { font-size: 0.82rem; color: #aaa; }
 
-    /* ── Podium ─────────────────────────────────────────────────────── */
+    /* â”€â”€ Podium â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .podium {
       display: flex;
       justify-content: center;
@@ -208,7 +208,7 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
       .bar-1 { height: 80px; } .bar-2 { height: 60px; } .bar-3 { height: 44px; }
     }
 
-    /* ── Table ──────────────────────────────────────────────────────── */
+    /* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .table-card { overflow: hidden; }
     .table-card mat-card-content { overflow-x: auto; padding: 0 !important; }
     .lb-table { width: 100%; min-width: 300px; }
@@ -244,9 +244,9 @@ export class LeaderboardComponent implements OnInit {
   cols = ['rank', 'name', 'points'];
 
   readonly tiers: { value: Tier; medal: string; desc: string }[] = [
-    { value: 'Gold',   medal: '🥇', desc: 'Exact scoreline' },
-    { value: 'Silver', medal: '🥈', desc: 'Goal difference' },
-    { value: 'Bronze', medal: '🥉', desc: 'Winner only' },
+    { value: 'Gold',   medal: 'ðŸ¥‡', desc: 'Exact scoreline' },
+    { value: 'Silver', medal: 'ðŸ¥ˆ', desc: 'Goal difference' },
+    { value: 'Bronze', medal: 'ðŸ¥‰', desc: 'Winner only' },
   ];
 
   currentUserId = () => this.auth.currentUser()?.id ?? -1;
@@ -273,3 +273,4 @@ export class LeaderboardComponent implements OnInit {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   }
 }
+

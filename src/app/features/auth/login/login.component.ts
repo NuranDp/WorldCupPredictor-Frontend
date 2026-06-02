@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, AfterViewInit, NgZone, ElementRef } from '@angular/core';
+﻿import { Component, inject, OnInit, AfterViewInit, NgZone, ElementRef } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -32,9 +32,9 @@ declare const google: any;
       <mat-card class="auth-card">
         <mat-card-header>
           <div class="logo-section">
-            <span class="trophy">🏆</span>
-            <h1 class="app-title">World Cup 2026</h1>
-            <p class="app-subtitle">Predictor</p>
+            <span class="trophy">ðŸ†</span>
+            <h1 class="app-title">Predict The</h1>
+            <p class="app-subtitle">Champion</p>
           </div>
         </mat-card-header>
 
@@ -226,3 +226,4 @@ export class LoginComponent implements OnInit, AfterViewInit {
     });
   }
 }
+
