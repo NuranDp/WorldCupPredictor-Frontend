@@ -38,7 +38,7 @@ function passwordsMatch(control: AbstractControl): ValidationErrors | null {
       <mat-card class="auth-card">
         <mat-card-header>
           <div class="logo-section">
-            <span class="trophy">ðŸ†</span>
+            <span class="trophy">🏆</span>
             <h1 class="app-title">Create Account</h1>
             <p class="app-subtitle">Predict The Champion</p>
           </div>

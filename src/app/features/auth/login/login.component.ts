@@ -32,7 +32,7 @@ declare const google: any;
       <mat-card class="auth-card">
         <mat-card-header>
           <div class="logo-section">
-            <span class="trophy">ðŸ†</span>
+            <span class="trophy">🏆</span>
             <h1 class="app-title">Predict The</h1>
             <p class="app-subtitle">Champion</p>
           </div>

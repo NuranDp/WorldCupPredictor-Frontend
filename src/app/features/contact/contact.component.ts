@@ -34,7 +34,6 @@ import { Component } from '@angular/core';
       justify-content: center;
       padding: 32px 16px;
     }
-
     .contact-card {
       background: white;
       border-radius: 20px;
@@ -44,59 +43,29 @@ import { Component } from '@angular/core';
       width: 100%;
       text-align: center;
     }
-
-    .contact-icon {
-      font-size: 3rem;
-      margin-bottom: 16px;
-    }
-
+    .contact-icon { font-size: 3rem; margin-bottom: 16px; }
     .contact-title {
-      font-size: 1.8rem;
-      font-weight: 900;
-      color: #1a237e;
-      margin: 0 0 16px;
+      font-size: 1.8rem; font-weight: 900;
+      color: #1a237e; margin: 0 0 16px;
     }
-
     .contact-desc {
-      font-size: 0.95rem;
-      color: #555;
-      line-height: 1.7;
-      margin: 0 0 32px;
+      font-size: 0.95rem; color: #555;
+      line-height: 1.7; margin: 0 0 32px;
     }
-
     .fb-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: #1877f2;
-      color: white;
-      text-decoration: none;
-      padding: 14px 28px;
-      border-radius: 50px;
-      font-size: 1rem;
-      font-weight: 700;
-      transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 10px;
+      background: #1877f2; color: white; text-decoration: none;
+      padding: 14px 28px; border-radius: 50px;
+      font-size: 1rem; font-weight: 700; transition: all 0.2s;
       box-shadow: 0 4px 14px rgba(24,119,242,0.35);
     }
-
     .fb-btn:hover {
       background: #1565c0;
       box-shadow: 0 6px 20px rgba(24,119,242,0.45);
       transform: translateY(-2px);
     }
-
-    .fb-icon {
-      width: 22px;
-      height: 22px;
-      flex-shrink: 0;
-    }
-
-    .contact-response {
-      margin: 20px 0 0;
-      font-size: 0.8rem;
-      color: #aaa;
-    }
-
+    .fb-icon { width: 22px; height: 22px; flex-shrink: 0; }
+    .contact-response { margin: 20px 0 0; font-size: 0.8rem; color: #aaa; }
     @media (max-width: 480px) {
       .contact-card { padding: 36px 24px; }
       .contact-title { font-size: 1.5rem; }
