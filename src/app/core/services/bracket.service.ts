@@ -116,7 +116,7 @@ export class BracketService {
     const existing = this.knockoutPicks();
     const merged: KnockoutPick[] = slots.map(s => {
       const ex = existing.find(k => k.matchId === s.id);
-      return ex ?? { matchId: s.id, slotNumber: s.slotNumber, round: s.round, pickedTeamId: null, homeScore: null, awayScore: null, lineupPlayerIds: [] };
+      return ex ?? { matchId: s.id, slotNumber: s.slotNumber, round: s.round, pickedTeamId: null, homeScore: null, awayScore: null, lineupPlayerIds: [], kickOffTime: null };
     });
     this.knockoutPicks.set(merged);
   }
@@ -311,7 +311,7 @@ export class BracketService {
     const merged = existing.map(slot => {
       const saved = b.knockoutPicks.find(k => k.matchId === slot.matchId);
       return saved
-        ? { ...slot, pickedTeamId: saved.pickedTeamId, homeScore: saved.homeScore ?? null, awayScore: saved.awayScore ?? null, lineupPlayerIds: saved.lineupPlayerIds ?? [] }
+        ? { ...slot, pickedTeamId: saved.pickedTeamId, homeScore: saved.homeScore ?? null, awayScore: saved.awayScore ?? null, lineupPlayerIds: saved.lineupPlayerIds ?? [], kickOffTime: saved.kickOffTime ?? null }
         : slot;
     });
     this.knockoutPicks.set(merged);

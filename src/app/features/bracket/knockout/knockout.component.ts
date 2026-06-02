@@ -11,6 +11,7 @@ interface MatchDisplay {
   homeScore: number | null;
   awayScore: number | null;
   lineupPlayerIds: number[];
+  kickOffTime: string | null;
   home: TeamSlot;
   away: TeamSlot;
 }
@@ -100,12 +101,20 @@ const ROUNDS: RoundConfig[] = [
                   @else { Match {{ slot }} }
                 </div>
 
+                <!-- Kick-off urgency warning -->
+                @let urgency = matchUrgency(m.kickOffTime);
+                @if (urgency === 'started') {
+                  <div class="ko-badge ko-badge-started">⚠️ Started — picks score 0</div>
+                } @else if (urgency === 'warning') {
+                  <div class="ko-badge ko-badge-warning">⏰ Kicks off in &lt;1 hr — submit now!</div>
+                }
+
                 <!-- Home team -->
                 <button class="team-row"
                         [class.tr-picked]="m.pickedTeamId !== null && m.pickedTeamId === m.home.team?.id"
                         [class.tr-loser]="m.pickedTeamId !== null && m.pickedTeamId !== m.home.team?.id"
                         [class.tr-tbd]="!m.home.team"
-                        [disabled]="!m.home.team || bracketService.isLocked()"
+                        [disabled]="!m.home.team"
                         (click)="pick(m.matchId, m.home.team!.id, m.pickedTeamId)">
                   @if (m.home.team) {
                     <img [src]="m.home.team.flagUrl" [alt]="m.home.team.name" class="tr-flag">
@@ -125,7 +134,7 @@ const ROUNDS: RoundConfig[] = [
                     <input class="score-input gd-input"
                            type="number" min="0" max="20"
                            placeholder="?"
-                           [disabled]="bracketService.isLocked()"
+                           [disabled]="false"
                            [ngModel]="m.homeScore"
                            (ngModelChange)="updateScore(m.matchId, $event, null)"
                            (input)="clampScore($event)"
@@ -140,7 +149,7 @@ const ROUNDS: RoundConfig[] = [
                     <input class="score-input"
                            type="number" min="0" max="20"
                            placeholder="–"
-                           [disabled]="bracketService.isLocked()"
+                           [disabled]="false"
                            [ngModel]="m.homeScore"
                            (ngModelChange)="updateScore(m.matchId, $event, m.awayScore, m.home.team!.id, m.away.team!.id)"
                            (input)="clampScore($event)"
@@ -149,7 +158,7 @@ const ROUNDS: RoundConfig[] = [
                     <input class="score-input"
                            type="number" min="0" max="20"
                            placeholder="–"
-                           [disabled]="bracketService.isLocked()"
+                           [disabled]="false"
                            [ngModel]="m.awayScore"
                            (ngModelChange)="updateScore(m.matchId, m.homeScore, $event, m.home.team!.id, m.away.team!.id)"
                            (input)="clampScore($event)"
@@ -162,7 +171,7 @@ const ROUNDS: RoundConfig[] = [
                         [class.tr-picked]="m.pickedTeamId !== null && m.pickedTeamId === m.away.team?.id"
                         [class.tr-loser]="m.pickedTeamId !== null && m.pickedTeamId !== m.away.team?.id"
                         [class.tr-tbd]="!m.away.team"
-                        [disabled]="!m.away.team || bracketService.isLocked()"
+                        [disabled]="!m.away.team"
                         (click)="pick(m.matchId, m.away.team!.id, m.pickedTeamId)">
                   @if (m.away.team) {
                     <img [src]="m.away.team.flagUrl" [alt]="m.away.team.name" class="tr-flag">
@@ -175,7 +184,7 @@ const ROUNDS: RoundConfig[] = [
                   }
                 </button>
 
-                @if (m.home.team && m.away.team && !bracketService.isLocked()) {
+                @if (m.home.team && m.away.team) {
                   <button class="rank-pick-btn"
                           tabindex="-1"
                           (click)="pickByRanking(m.matchId, m.home.team, m.away.team, m.pickedTeamId)">
@@ -383,6 +392,25 @@ const ROUNDS: RoundConfig[] = [
     .match-final  .match-slot { color: #f9a825; }
     .match-third  .match-slot { color: #a1887f; }
 
+    /* Kick-off urgency badges */
+    .ko-badge {
+      font-size: 0.65rem; font-weight: 700; text-align: center;
+      padding: 3px 6px; border-radius: 6px; margin-bottom: 4px;
+      letter-spacing: 0.02em;
+    }
+    .ko-badge-started {
+      background: rgba(183,28,28,0.10); color: #b71c1c;
+      border: 1px solid rgba(183,28,28,0.25);
+    }
+    .ko-badge-warning {
+      background: rgba(249,168,37,0.12); color: #e65100;
+      border: 1px solid rgba(249,168,37,0.35);
+      animation: badge-pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes badge-pulse {
+      0%,100% { opacity: 1; } 50% { opacity: 0.6; }
+    }
+
     .match-vs {
       display: none; /* hidden — replaced by score row */
     }
@@ -587,9 +615,27 @@ export class KnockoutComponent {
       homeScore: pick.homeScore,
       awayScore: pick.awayScore,
       lineupPlayerIds: pick.lineupPlayerIds,
+      kickOffTime: pick.kickOffTime ?? null,
       home: { team: home, label: this.slotLabel(slotNumber, 'home') },
       away: { team: away, label: this.slotLabel(slotNumber, 'away') },
     };
+  }
+
+  /**
+   * Returns urgency state for a match based on kick-off time:
+   * 'started'  — match has already kicked off (0 points)
+   * 'warning'  — less than 1 hour to kick-off (submit now!)
+   * 'ok'       — plenty of time
+   * 'unknown'  — no kick-off data
+   */
+  matchUrgency(kickOffTime: string | null): 'started' | 'warning' | 'ok' | 'unknown' {
+    if (!kickOffTime) return 'unknown';
+    const ko = new Date(kickOffTime).getTime();
+    const now = Date.now();
+    const diffMs = ko - now;
+    if (diffMs <= 0) return 'started';
+    if (diffMs <= 60 * 60 * 1000) return 'warning';
+    return 'ok';
   }
 
   pickByRanking(matchId: number, home: Team, away: Team, current: number | null): void {

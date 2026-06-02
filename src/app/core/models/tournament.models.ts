@@ -43,6 +43,7 @@ export interface KnockoutPick {
   homeScore: number | null;
   awayScore: number | null;
   lineupPlayerIds: number[];
+  kickOffTime: string | null; // ISO date string from API
 }
 
 export interface PlayerDto {

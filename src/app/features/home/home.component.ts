@@ -13,8 +13,8 @@ interface PrizeTier {
   criteria: { icon: string; label: string }[];
 }
 
-const LOCK_DATE = '2026-06-10T00:00:00';
-const WC_DATE   = 'June 11, 2026';
+const TOURNAMENT_START = '2026-06-11T16:00:00'; // First match kick-off (UTC)
+const WC_DATE          = 'June 11, 2026';
 
 const PRIZES: PrizeTier[] = [
   {
@@ -111,10 +111,10 @@ const HOW_STEPS = [
         </p>
 
         @if (time().locked) {
-          <div class="locked-banner">🔒 Bracket is locked — Tournament underway!</div>
+          <div class="locked-banner">⚽ Tournament has kicked off! Late picks score 0 for started matches.</div>
         } @else {
           <div class="big-countdown">
-            <span class="bc-label">Bracket locks in</span>
+            <span class="bc-label">Tournament kicks off in</span>
             <div class="bc-digits">
               <div class="bc-seg">
                 <span class="bc-val">{{ pad(time().days) }}</span>
@@ -1352,7 +1352,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ── Clock ───────────────────────────────────────────────────────
   private tickClock(): void {
-    const diff = new Date(LOCK_DATE).getTime() - Date.now();
+    const diff = new Date(TOURNAMENT_START).getTime() - Date.now();
     if (diff <= 0) {
       this.time.set({ days: 0, hours: 0, minutes: 0, seconds: 0, locked: true });
       return;
