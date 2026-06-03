@@ -61,7 +61,11 @@ interface TimeLeft {
       background: linear-gradient(135deg, #b71c1c, #c62828);
       gap: 8px;
     }
-    .countdown-label { opacity: 0.75; font-size: 0.75rem; white-space: nowrap; }
+    .countdown-label { opacity: 0.75; font-size: 0.75rem; white-space: nowrap; flex: 1; }
+    @media (max-width: 600px) {
+      :host { display: block; }
+      .countdown { display: flex; width: 100%; box-sizing: border-box; justify-content: space-between; }
+    }
     .segments { display: flex; align-items: center; gap: 4px; }
     .seg { display: flex; flex-direction: column; align-items: center; min-width: 32px; }
     .val { font-size: 1.05rem; font-weight: 700; line-height: 1; }

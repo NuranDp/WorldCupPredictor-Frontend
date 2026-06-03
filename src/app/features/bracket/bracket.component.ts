@@ -519,9 +519,33 @@ import { CountdownComponent } from '../../shared/countdown/countdown.component';
       border-color: #1a237e; color: #1a237e; background: #e8eaf6;
     }
 
-    @media (max-width: 480px) {
-      .hdr-btn { padding: 8px 12px; font-size: 0.78rem; }
-      .header-actions { gap: 6px; }
+    @media (max-width: 600px) {
+      .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .header-left {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+      app-countdown { display: block; }
+      .tier-pills {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .tier-pill { justify-content: center; }
+      .header-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .submit-btn {
+        grid-column: 1 / -1;
+      }
+      .rules-btn { display: none; }
+      .hdr-btn { padding: 10px 12px; font-size: 0.82rem; justify-content: center; }
     }
     @media (max-width: 360px) {
       .sn-sub { display: none; }
