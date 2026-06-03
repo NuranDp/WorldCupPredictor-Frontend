@@ -35,7 +35,7 @@ import { AuthService } from '../../core/services/auth.service';
         </a>
         <a routerLink="/leaderboard" routerLinkActive="drawer-link-active" class="drawer-link" (click)="closeDrawer()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          Scores
+          Leaderboard
         </a>
         <a routerLink="/groups"      routerLinkActive="drawer-link-active" class="drawer-link" (click)="closeDrawer()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="17" cy="21" r="1"/><circle cx="9" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -92,7 +92,7 @@ import { AuthService } from '../../core/services/auth.service';
         <nav class="nav">
           <a routerLink="/home"        routerLinkActive="nav-active" class="nav-link">Home</a>
           <a routerLink="/bracket"     routerLinkActive="nav-active" class="nav-link">Bracket</a>
-          <a routerLink="/leaderboard" routerLinkActive="nav-active" class="nav-link">Scores</a>
+          <a routerLink="/leaderboard" routerLinkActive="nav-active" class="nav-link">Leaderboard</a>
           <a routerLink="/groups"      routerLinkActive="nav-active" class="nav-link">Groups</a>
           <a routerLink="/rules"       routerLinkActive="nav-active" class="nav-link">Rules</a>
           <a routerLink="/contact"     routerLinkActive="nav-active" class="nav-link">Contact</a>
