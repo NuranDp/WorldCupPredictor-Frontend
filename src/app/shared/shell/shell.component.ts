@@ -1,5 +1,5 @@
 ﻿import { Component, inject, computed, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -63,7 +63,7 @@ import { AuthService } from '../../core/services/auth.service';
             <div class="user-avatar">{{ initial() }}</div>
             <span class="drawer-user-name">{{ auth.currentUser()?.name }}</span>
           </div>
-          <button class="drawer-logout" (click)="auth.logout()">
+          <button class="drawer-logout" (click)="confirmSignOut()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             Sign out
           </button>
@@ -109,7 +109,7 @@ import { AuthService } from '../../core/services/auth.service';
           <div class="user-area">
             <div class="user-avatar">{{ initial() }}</div>
             <span class="user-name">{{ auth.currentUser()?.name }}</span>
-            <button class="logout-btn" title="Sign out" (click)="auth.logout()">
+            <button class="logout-btn" title="Sign out" (click)="confirmSignOut()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                 <polyline points="16 17 21 12 16 7"/>
@@ -131,6 +131,21 @@ import { AuthService } from '../../core/services/auth.service';
     <div class="page-content">
       <router-outlet />
     </div>
+
+    <!-- ── Sign out confirmation modal ── -->
+    @if (showSignOutModal()) {
+      <div class="signout-backdrop" (click)="showSignOutModal.set(false)">
+        <div class="signout-modal" (click)="$event.stopPropagation()">
+          <div class="signout-icon">👋</div>
+          <h3 class="signout-title">Sign out?</h3>
+          <p class="signout-body">You'll need to sign back in to access your bracket.</p>
+          <div class="signout-actions">
+            <button class="signout-btn-cancel" (click)="showSignOutModal.set(false)">Cancel</button>
+            <button class="signout-btn-confirm" (click)="doSignOut()">Sign out</button>
+          </div>
+        </div>
+      </div>
+    }
   `,
   styles: [`
     :host { display: block; }
@@ -328,6 +343,34 @@ import { AuthService } from '../../core/services/auth.service';
     /* Page content */
     .page-content { max-width: 1280px; margin: 0 auto; padding: 16px 12px 32px; }
 
+    /* ── Sign out modal ───────────────────────────────────────────── */
+    .signout-backdrop {
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(2px);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .signout-modal {
+      background: #fff; border-radius: 16px;
+      padding: 32px 28px 24px; width: min(360px, calc(100vw - 32px));
+      text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+    .signout-icon  { font-size: 40px; margin-bottom: 12px; }
+    .signout-title { margin: 0 0 8px; font-size: 20px; font-weight: 700; color: #1a237e; }
+    .signout-body  { margin: 0 0 24px; font-size: 14px; color: #666; }
+    .signout-actions { display: flex; gap: 10px; }
+    .signout-btn-cancel {
+      flex: 1; padding: 10px; border-radius: 8px;
+      border: 1.5px solid #ddd; background: #f5f5f5;
+      font-size: 14px; font-weight: 600; cursor: pointer; color: #555;
+    }
+    .signout-btn-cancel:hover { background: #eeeeee; }
+    .signout-btn-confirm {
+      flex: 1; padding: 10px; border-radius: 8px;
+      border: none; background: #c62828; color: #fff;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .signout-btn-confirm:hover { background: #b71c1c; }
+
     /* â”€â”€ Responsive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     @media (max-width: 360px) {
       .nav-link { padding: 0 8px; font-size: 0.78rem; }
@@ -360,7 +403,10 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class ShellComponent {
   readonly auth = inject(AuthService);
-  drawerOpen = signal(false);
+  private readonly router = inject(Router);
+
+  drawerOpen      = signal(false);
+  showSignOutModal = signal(false);
 
   openDrawer()  { this.drawerOpen.set(true);  }
   closeDrawer() { this.drawerOpen.set(false); }
@@ -369,5 +415,16 @@ export class ShellComponent {
     const name = this.auth.currentUser()?.name ?? '';
     return name.charAt(0).toUpperCase() || '?';
   });
+
+  confirmSignOut(): void {
+    this.closeDrawer();
+    this.showSignOutModal.set(true);
+  }
+
+  doSignOut(): void {
+    this.showSignOutModal.set(false);
+    this.auth.logout();
+    this.router.navigate(['/home']);
+  }
 }
 

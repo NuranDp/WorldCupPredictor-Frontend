@@ -8,6 +8,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { BracketService } from '../../core/services/bracket.service';
 import { DraftService } from '../../core/services/draft.service';
 import { TournamentService } from '../../core/services/tournament.service';
+import { AuthService } from '../../core/services/auth.service';
+import { GuestBracketService } from '../../core/services/guest-bracket.service';
+import { AuthModalComponent } from '../../shared/auth-modal/auth-modal.component';
 import { TournamentGroup, TournamentConfig, BracketDraftMeta, BracketDraftFull } from '../../core/models/tournament.models';
 import { GroupStageComponent } from './group-stage/group-stage.component';
 import { KnockoutComponent } from './knockout/knockout.component';
@@ -23,6 +26,7 @@ import { CountdownComponent } from '../../shared/countdown/countdown.component';
     CountdownComponent,
     FormsModule,
     DatePipe,
+    AuthModalComponent,
   ],
   template: `
     @if (loading()) {
@@ -265,6 +269,14 @@ import { CountdownComponent } from '../../shared/countdown/countdown.component';
             </div>
           </div>
         </div>
+      }
+
+      <!-- ── Auth Modal (guest tries to save/submit) ───────────── -->
+      @if (showAuthModal()) {
+        <app-auth-modal
+          (loggedIn)="onAuthSuccess()"
+          (closed)="showAuthModal.set(false)">
+        </app-auth-modal>
       }
 
     }
@@ -705,6 +717,8 @@ export class BracketComponent implements OnInit {
   ];
   private readonly draftService = inject(DraftService);
   private readonly tournamentService = inject(TournamentService);
+  private readonly auth = inject(AuthService);
+  private readonly guestBracket = inject(GuestBracketService);
   private readonly snack = inject(MatSnackBar);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -730,6 +744,10 @@ export class BracketComponent implements OnInit {
   loadingDraftId    = signal<number | null>(null);
   activeDraftId     = signal<number | null>(null);   // which draft is currently loaded
   isFinalSubmitted  = signal(false);
+  showAuthModal     = signal(false);
+
+  // Action to replay after guest logs in ('saveDraft' | 'submit' | 'drafts' | null)
+  private pendingAction = signal<'saveDraft' | 'submit' | 'drafts' | null>(null);
 
   draftsByTier = computed(() => {
     const all = this.drafts();
@@ -776,27 +794,76 @@ export class BracketComponent implements OnInit {
         this.config.set(config);
         this.bracketService.loadTeams(groups);
         this.bracketService.initSlots(slots);
-        this.bracketService.loadBracket().subscribe({
-          next: () => {
-            if (tierParam && ['Bronze', 'Silver', 'Gold'].includes(tierParam)) {
-              this.bracketService.setTier(tierParam as 'Bronze' | 'Silver' | 'Gold');
-            }
-          },
-          error: () => {
-            if (tierParam && ['Bronze', 'Silver', 'Gold'].includes(tierParam)) {
-              this.bracketService.setTier(tierParam as 'Bronze' | 'Silver' | 'Gold');
-            }
-          },
-        });
-        this.loadDrafts();
+
+        if (this.auth.isLoggedIn()) {
+          // Restore any guest picks saved before login
+          if (this.guestBracket.hasSaved()) {
+            this.guestBracket.restore();
+            this.guestBracket.clear();
+            this.snack.open('Your picks have been restored! 🎉', undefined, { duration: 4000 });
+          } else {
+            this.bracketService.loadBracket().subscribe({
+              next: () => {
+                if (tierParam && ['Bronze', 'Silver', 'Gold'].includes(tierParam)) {
+                  this.bracketService.setTier(tierParam as 'Bronze' | 'Silver' | 'Gold');
+                }
+              },
+              error: () => {
+                if (tierParam && ['Bronze', 'Silver', 'Gold'].includes(tierParam)) {
+                  this.bracketService.setTier(tierParam as 'Bronze' | 'Silver' | 'Gold');
+                }
+              },
+            });
+          }
+          this.loadDrafts();
+        } else {
+          // Guest — show bracket freely, set tier if provided
+          if (tierParam && ['Bronze', 'Silver', 'Gold'].includes(tierParam)) {
+            this.bracketService.setTier(tierParam as 'Bronze' | 'Silver' | 'Gold');
+          }
+        }
+
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
     });
   }
 
+  /** Show auth modal for guests — returns true if guest (caller should return) */
+  private requireLogin(action: 'saveDraft' | 'submit' | 'drafts'): boolean {
+    if (this.auth.isLoggedIn()) return false;
+    this.pendingAction.set(action);
+    this.showAuthModal.set(true);
+    return true;
+  }
+
+  /** Called after guest successfully logs in via modal */
+  onAuthSuccess(): void {
+    this.showAuthModal.set(false);
+    const action = this.pendingAction();
+    this.pendingAction.set(null);
+
+    // Restore guest picks into the bracket service
+    if (this.guestBracket.hasSaved()) {
+      this.guestBracket.restore();
+      this.guestBracket.clear();
+    }
+
+    // Load server bracket and drafts now that user is logged in
+    this.bracketService.loadBracket().subscribe();
+    this.loadDrafts();
+
+    // Replay the action they originally wanted
+    if (action === 'saveDraft') this.openSaveDraftModal();
+    else if (action === 'submit') this.submitFinal();
+    else if (action === 'drafts') this.openDraftsDrawer();
+  }
+
   // ── Drawer ──────────────────────────────────────────────────────
-  openDraftsDrawer(): void  { this.showDraftsDrawer.set(true);  }
+  openDraftsDrawer(): void  {
+    if (this.requireLogin('drafts')) return;
+    this.showDraftsDrawer.set(true);
+  }
   closeDraftsDrawer(): void { this.showDraftsDrawer.set(false); }
 
   // ── Drafts ──────────────────────────────────────────────────────
@@ -805,6 +872,7 @@ export class BracketComponent implements OnInit {
   }
 
   openSaveDraftModal(): void {
+    if (this.requireLogin('saveDraft')) return;
     this.draftNameValue = 'My Bracket ' + new Date().toLocaleDateString();
     this.showDraftModal.set(true);
   }
@@ -886,6 +954,7 @@ export class BracketComponent implements OnInit {
   }
 
   submitFinal(): void {
+    if (this.requireLogin('submit')) return;
     if (this.saving()) return;
     const isEdit = !!this.bracketService.bracketId();
     const isComplete = this.bracketService.groupPicksComplete && !!this.bracketService.champion;
@@ -935,6 +1004,7 @@ export class BracketComponent implements OnInit {
         this.saving.set(false);
         this.showSubmitModal.set(false);
         this.isFinalSubmitted.set(true);
+        this.guestBracket.clear(); // clear any saved guest picks
         this.router.navigate(['/bracket/view']);
       },
       error: (err) => {

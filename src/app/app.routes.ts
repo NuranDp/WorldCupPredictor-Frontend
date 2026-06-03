@@ -26,7 +26,7 @@ export const routes: Routes = [
       },
       {
         path: 'bracket',
-        canActivate: [authGuard],
+        // No guard — guests can browse; login is prompted on Save Draft / Submit
         loadComponent: () =>
           import('./features/bracket/bracket.component').then(m => m.BracketComponent),
       },
