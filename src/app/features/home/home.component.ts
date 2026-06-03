@@ -301,6 +301,11 @@ const HOW_STEPS = [
           </div>
         }
       </div>
+
+      <div class="ps-rules-row">
+        <a class="ps-rules-link" routerLink="/rules">Prize rules →</a>
+      </div>
+
     </section>
     </div><!-- /spin-prizes-stack -->
 
@@ -916,6 +921,17 @@ const HOW_STEPS = [
     .ps-c-text { font-size: 0.83rem; font-weight: 500; color: rgba(255,255,255,0.75); }
 
     /* CTA button */
+    .ps-rules-row {
+      text-align: right;
+      margin-top: 12px;
+      padding-right: 4px;
+    }
+    .ps-rules-link {
+      font-size: 0.78rem; font-weight: 600;
+      color: rgba(255,255,255,0.45);
+      text-decoration: none;
+    }
+    .ps-rules-link:hover { color: rgba(255,255,255,0.85); text-decoration: underline; }
     .ps-cta {
       display: block; width: 100%;
       padding: 12px 0; border: none; border-radius: 12px;

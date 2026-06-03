@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, HostListener } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
@@ -23,12 +23,27 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
     <!-- Tier selector -->
     <div class="tier-row">
       @for (t of tiers; track t.value) {
-        <button class="tier-tab" [class.tier-tab-active]="selectedTier() === t.value"
-                (click)="selectTier(t.value)">
-          <span class="tt-medal">{{ t.medal }}</span>
-          <span class="tt-label">{{ t.value }}</span>
-          <span class="tt-desc">{{ t.desc }}</span>
-        </button>
+        <div class="tier-tab-wrap">
+          <button class="tier-tab" [class.tier-tab-active]="selectedTier() === t.value"
+                  (click)="selectTier(t.value)">
+            <span class="tt-medal">{{ t.medal }}</span>
+            <span class="tt-label">{{ t.value }}</span>
+            <span class="tt-desc">{{ t.desc }}</span>
+          </button>
+          <button class="info-btn" (click)="toggleInfo(t.value, $event)" [class.info-btn-active]="showInfoTier() === t.value" title="Prize requirement">ⓘ</button>
+          @if (showInfoTier() === t.value) {
+            <div class="info-popup">
+              <div class="ip-title">🎁 Prize Requirement</div>
+              <div class="ip-body">
+                A minimum of <strong>{{ t.minParticipants }} participants</strong> must submit a {{ t.value }} bracket for the prize to be awarded.
+              </div>
+              <div class="ip-current">{{ tierCounts()[t.value] }} / {{ t.minParticipants }} submitted</div>
+              <div class="ip-progress-bar">
+                <div class="ip-progress-fill" [style.width.%]="progressPct(tierCounts()[t.value], t.minParticipants)"></div>
+              </div>
+            </div>
+          }
+        </div>
       }
     </div>
 
@@ -171,6 +186,37 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
     .tt-label { font-size: 0.85rem; font-weight: 800; color: #1a237e; }
     .tt-desc  { font-size: 0.65rem; color: #888; }
 
+    /* Info button & popup */
+    .tier-tab-wrap { position: relative; flex: 1; display: flex; flex-direction: column; }
+    .tier-tab-wrap .tier-tab { flex: 1; }
+    .info-btn {
+      position: absolute; top: 6px; right: 6px;
+      width: 20px; height: 20px; border-radius: 50%;
+      border: none; background: #e8eaf6; color: #1a237e;
+      font-size: 0.72rem; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .info-btn:hover, .info-btn-active { background: #1a237e; color: white; }
+    .info-popup {
+      position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+      z-index: 50; background: white;
+      border: 1px solid #e0e0e0; border-radius: 12px;
+      padding: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    .ip-title { font-size: 0.82rem; font-weight: 800; color: #1a237e; margin-bottom: 6px; }
+    .ip-body  { font-size: 0.78rem; color: #444; line-height: 1.5; margin-bottom: 10px; }
+    .ip-body strong { color: #1a237e; }
+    .ip-current { font-size: 0.72rem; color: #666; margin-bottom: 4px; text-align: right; }
+    .ip-progress-bar {
+      height: 6px; background: #e8eaf6; border-radius: 3px; overflow: hidden;
+    }
+    .ip-progress-fill {
+      height: 100%; background: linear-gradient(90deg, #1a237e, #42a5f5);
+      border-radius: 3px; transition: width 0.4s ease;
+      min-width: 4px;
+    }
+
     /* Empty state */
     .empty-state {
       display: flex; flex-direction: column; align-items: center;
@@ -264,13 +310,30 @@ export class LeaderboardComponent implements OnInit {
   selectedTier = signal<Tier>('Gold');
   cols = ['rank', 'name', 'points', 'view'];
 
-  readonly tiers: { value: Tier; medal: string; desc: string }[] = [
-    { value: 'Gold',   medal: '🥇', desc: 'Exact scoreline' },
-    { value: 'Silver', medal: '🥈', desc: 'Goal difference' },
-    { value: 'Bronze', medal: '🥉', desc: 'Winner only' },
+  readonly tiers: { value: Tier; medal: string; desc: string; minParticipants: number }[] = [
+    { value: 'Gold',   medal: '🥇', desc: 'Exact scoreline', minParticipants: 200 },
+    { value: 'Silver', medal: '🥈', desc: 'Goal difference', minParticipants: 100 },
+    { value: 'Bronze', medal: '🥉', desc: 'Winner only',     minParticipants: 50  },
   ];
 
+  showInfoTier = signal<Tier | null>(null);
+  tierCounts = signal<Record<string, number>>({ Gold: 0, Silver: 0, Bronze: 0 });
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.showInfoTier.set(null);
+  }
+
+  toggleInfo(tier: Tier, event: Event): void {
+    event.stopPropagation();
+    this.showInfoTier.set(this.showInfoTier() === tier ? null : tier);
+  }
+
   currentUserId = () => this.auth.currentUser()?.id ?? -1;
+
+  progressPct(current: number, min: number): number {
+    return Math.min(100, Math.round((current / min) * 100));
+  }
 
   ngOnInit(): void {
     this.seo.set({
@@ -279,11 +342,19 @@ export class LeaderboardComponent implements OnInit {
       url: '/leaderboard',
     });
     this.loadLeaderboard();
+    // Load counts for all tiers for the info popups
+    (['Gold', 'Silver', 'Bronze'] as Tier[]).forEach(tier => {
+      this.leaderboardService.getLeaderboard(tier).subscribe(data => {
+        this.tierCounts.update(c => ({ ...c, [tier]: data.length }));
+      });
+    });
   }
 
   selectTier(tier: Tier): void {
     if (tier === this.selectedTier()) return;
     this.selectedTier.set(tier);
+    this.entries.set([]);
+    this.showInfoTier.set(null);
     this.loadLeaderboard();
   }
 

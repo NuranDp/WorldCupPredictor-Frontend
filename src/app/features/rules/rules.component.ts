@@ -101,6 +101,38 @@ import { SeoService } from '../../core/services/seo.service';
         </div>
       </div>
 
+      <!-- Minimum participants rule -->
+      <div class="min-part-block">
+        <div class="mp-header">
+          <div class="mp-icon">🎁</div>
+          <div class="mp-title">Prizes Are Awarded When Minimum Participants Are Reached</div>
+          <div class="mp-sub">Each tier has a minimum number of submitted brackets required before prizes are distributed.</div>
+        </div>
+        <div class="mp-tiers">
+          <div class="mp-tier mp-bronze">
+            <div class="mp-medal">🥉</div>
+            <div class="mp-tier-name">Bronze</div>
+            <div class="mp-count">50 participants</div>
+            <div class="mp-label">minimum to award prize</div>
+          </div>
+          <div class="mp-tier mp-silver">
+            <div class="mp-medal">🥈</div>
+            <div class="mp-tier-name">Silver</div>
+            <div class="mp-count">100 participants</div>
+            <div class="mp-label">minimum to award prize</div>
+          </div>
+          <div class="mp-tier mp-gold">
+            <div class="mp-medal">🥇</div>
+            <div class="mp-tier-name">Gold</div>
+            <div class="mp-count">200 participants</div>
+            <div class="mp-label">minimum to award prize</div>
+          </div>
+        </div>
+        <div class="mp-note">
+          ⚠️ If a tier does not reach its minimum by the tournament end, no prize will be awarded for that tier. Spread the word!
+        </div>
+      </div>
+
       <!-- Quick comparison table -->
       <div class="compare-block">
         <div class="cb-title">Quick Comparison</div>
@@ -261,6 +293,43 @@ import { SeoService } from '../../core/services/seo.service';
       font-size: 0.85rem; color: rgba(255,255,255,0.65); line-height: 1.6;
     }
     .db-body strong { color: white; }
+
+    /* ── Minimum participants ────────────────────────────────────── */
+    .min-part-block {
+      margin: 0 16px 24px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px; padding: 24px;
+    }
+    .mp-header { text-align: center; margin-bottom: 20px; }
+    .mp-icon { font-size: 2rem; margin-bottom: 8px; }
+    .mp-title { font-size: 1rem; font-weight: 800; color: white; margin-bottom: 6px; }
+    .mp-sub { font-size: 0.82rem; color: rgba(255,255,255,0.55); line-height: 1.5; }
+    .mp-tiers {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 12px; margin-bottom: 16px;
+    }
+    .mp-tier {
+      text-align: center; padding: 16px 12px;
+      border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .mp-bronze { background: rgba(191,120,62,0.12); border-color: rgba(191,120,62,0.3); }
+    .mp-silver { background: rgba(192,192,192,0.10); border-color: rgba(192,192,192,0.3); }
+    .mp-gold   { background: rgba(249,168,37,0.12); border-color: rgba(249,168,37,0.35); }
+    .mp-medal { font-size: 1.6rem; margin-bottom: 4px; }
+    .mp-tier-name { font-size: 0.85rem; font-weight: 700; color: white; margin-bottom: 8px; }
+    .mp-count { font-size: 1.3rem; font-weight: 800; color: white; line-height: 1.1; }
+    .mp-label { font-size: 0.7rem; color: rgba(255,255,255,0.45); margin-top: 4px; }
+    .mp-note {
+      font-size: 0.8rem; color: rgba(255,255,255,0.5);
+      text-align: center; line-height: 1.5;
+    }
+    @media (max-width: 480px) {
+      .mp-tiers { grid-template-columns: 1fr; }
+      .mp-tier { display: flex; align-items: center; gap: 12px; text-align: left; padding: 12px 16px; }
+      .mp-medal { font-size: 1.4rem; margin-bottom: 0; }
+      .mp-count { font-size: 1.1rem; }
+    }
 
     /* ── Comparison table ────────────────────────────────────────── */
     .compare-block {
