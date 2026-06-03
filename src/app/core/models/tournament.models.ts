@@ -58,6 +58,16 @@ export interface Best3rdPick {
   teamId: number | null;
 }
 
+export interface LeaderboardEntry {
+  rank: number;
+  userId: number;
+  name: string;
+  avatarUrl?: string;
+  totalPoints: number;
+  submittedAt?: string;
+  shareToken?: string;
+}
+
 export interface BracketDto {
   id: number;
   shareToken: string;

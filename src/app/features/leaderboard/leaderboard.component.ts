@@ -3,6 +3,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 import { LeaderboardService, LeaderboardEntry } from '../../core/services/leaderboard.service';
 import { AuthService } from '../../core/services/auth.service';
 import { SeoService } from '../../core/services/seo.service';
@@ -12,7 +13,7 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
 @Component({
   selector: 'app-leaderboard',
   standalone: true,
-  imports: [MatCardModule, MatProgressBarModule, MatTableModule, MatIconModule],
+  imports: [MatCardModule, MatProgressBarModule, MatTableModule, MatIconModule, RouterLink],
   template: `
     <div class="page-header">
       <h2>Leaderboard</h2>
@@ -105,6 +106,17 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
               <th mat-header-cell *matHeaderCellDef class="pts-header">Points</th>
               <td mat-cell *matCellDef="let e" class="pts-cell">
                 <span class="pts-badge" [class.leader]="e.rank === 1">{{ e.totalPoints }}</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="view">
+              <th mat-header-cell *matHeaderCellDef class="view-header"></th>
+              <td mat-cell *matCellDef="let e" class="view-cell">
+                @if (e.shareToken) {
+                  <a class="view-btn" [routerLink]="['/share/bracket', e.shareToken]" target="_blank">
+                    👁 View
+                  </a>
+                }
               </td>
             </ng-container>
 
@@ -227,6 +239,15 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
       border-radius: 8px; padding: 1px 6px; margin-left: 4px; font-weight: 600;
     }
     .pts-header, .pts-cell { text-align: right !important; }
+    .view-header, .view-cell { text-align: right !important; width: 70px; }
+    .view-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600;
+      color: #1a237e; background: #e8eaf6; text-decoration: none;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .view-btn:hover { background: #c5cae9; }
     .pts-badge {
       display: inline-block; padding: 3px 10px; border-radius: 12px;
       background: #f5f5f5; font-weight: 600; font-size: 0.9rem;
@@ -243,7 +264,7 @@ export class LeaderboardComponent implements OnInit {
   entries = signal<LeaderboardEntry[]>([]);
   loading = signal(true);
   selectedTier = signal<Tier>('Gold');
-  cols = ['rank', 'name', 'points'];
+  cols = ['rank', 'name', 'points', 'view'];
 
   readonly tiers: { value: Tier; medal: string; desc: string }[] = [
     { value: 'Gold',   medal: '🥇', desc: 'Exact scoreline' },

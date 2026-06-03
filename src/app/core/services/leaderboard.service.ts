@@ -10,6 +10,7 @@ export interface LeaderboardEntry {
   avatarUrl: string | null;
   totalPoints: number;
   submittedAt: string | null;
+  shareToken: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
