@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SeoService } from '../../core/services/seo.service';
 
 @Component({
   selector: 'app-rules',
@@ -317,4 +318,14 @@ import { RouterLink } from '@angular/router';
     .cta-secondary:hover { border-color: rgba(255,255,255,0.5); color: white; background: rgba(255,255,255,0.06); }
   `],
 })
-export class RulesComponent {}
+export class RulesComponent implements OnInit {
+  private readonly seo = inject(SeoService);
+
+  ngOnInit(): void {
+    this.seo.set({
+      title: 'How to Play | Predict The Champion',
+      description: 'Learn how to fill your bracket, earn points, and compete to win prizes in the FIFA World Cup 2026 prediction game.',
+      url: '/rules',
+    });
+  }
+}

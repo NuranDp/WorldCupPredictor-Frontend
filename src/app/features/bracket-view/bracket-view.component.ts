@@ -3,6 +3,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { BracketService } from '../../core/services/bracket.service';
 import { TournamentService } from '../../core/services/tournament.service';
+import { SeoService } from '../../core/services/seo.service';
 import { Team } from '../../core/models/tournament.models';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { forkJoin } from 'rxjs';
@@ -478,6 +479,7 @@ export class BracketViewComponent implements OnInit {
   private readonly tournamentService = inject(TournamentService);
   private readonly router = inject(Router);
   private readonly route  = inject(ActivatedRoute);
+  private readonly seo = inject(SeoService);
 
   /** true when loaded via a public /share/:id URL (no auth, no edit button) */
   isSharedView = signal(false);
@@ -500,6 +502,12 @@ export class BracketViewComponent implements OnInit {
   readonly THIRD = THIRD;
 
   ngOnInit(): void {
+    this.seo.set({
+      title: 'Bracket | Predict The Champion',
+      description: 'View this FIFA World Cup 2026 bracket prediction.',
+      url: '/share/bracket',
+    });
+
     const shareToken = this.route.snapshot.paramMap.get('id');
     if (shareToken) this.isSharedView.set(true);
 

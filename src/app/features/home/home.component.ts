@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit, OnDestroy, AfterViewInit, ViewChild,
 import { RouterLink, Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { SeoService } from '../../core/services/seo.service';
 
 interface TimeLeft {
   days: number; hours: number; minutes: number; seconds: number; locked: boolean;
@@ -1295,6 +1296,7 @@ const HOW_STEPS = [
 export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly seo = inject(SeoService);
 
   @ViewChild('slotReelHero')   slotReelHeroRef!:   ElementRef<HTMLDivElement>;
   @ViewChild('slotReelMobile') slotReelMobileRef!:  ElementRef<HTMLDivElement>;
@@ -1349,6 +1351,11 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ── Lifecycle ───────────────────────────────────────────────────
   ngOnInit(): void {
+    this.seo.set({
+      title: 'Predict The Champion | FIFA World Cup 2026 Bracket Game',
+      description: 'Fill your bracket, earn points for every correct pick, and top the leaderboard to claim your prize.',
+      url: '/home',
+    });
     this.tickClock();
     this.sub = interval(1000).subscribe(() => {
       this.tick.set(true);

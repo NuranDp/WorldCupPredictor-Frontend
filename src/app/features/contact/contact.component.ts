@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
+import { SeoService } from '../../core/services/seo.service';
 
 @Component({
   selector: 'app-contact',
@@ -72,4 +73,14 @@ import { Component } from '@angular/core';
     }
   `],
 })
-export class ContactComponent {}
+export class ContactComponent implements OnInit {
+  private readonly seo = inject(SeoService);
+
+  ngOnInit(): void {
+    this.seo.set({
+      title: 'Contact | Predict The Champion',
+      description: 'Get in touch with the Predict The Champion team.',
+      url: '/contact',
+    });
+  }
+}
