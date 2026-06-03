@@ -1322,7 +1322,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly ITEM_H      = 68;  // mobile row height
   private readonly HERO_ITEM_H = 88;  // desktop row height
   private readonly NUM_TEAMS   = WHEEL_TEAMS.length;
-  private currentCenterIdx    = 40 * WHEEL_TEAMS.length; // 1280
+  private currentCenterIdx    = 40 * WHEEL_TEAMS.length + 2; // start on France (index 2)
 
   prizes = PRIZES;
   steps  = HOW_STEPS;
