@@ -21,7 +21,7 @@ const PRIZES: PrizeTier[] = [
     id: 3, place: '1st Place', medal: '🥇', title: 'Gold',
     color: 'linear-gradient(135deg,#e65100,#f9a825)',
     rewards: [
-      { icon: '👕', label: 'Official Jersey' },
+      { icon: '👕', label: 'Jersey' },
       { icon: '⚽', label: 'Match Football' },
       { icon: '👟', label: 'Turf Shoes' },
     ],
@@ -34,7 +34,7 @@ const PRIZES: PrizeTier[] = [
     id: 2, place: '2nd Place', medal: '🥈', title: 'Silver',
     color: 'linear-gradient(135deg,#37474f,#546e7a)',
     rewards: [
-      { icon: '👕', label: 'Official Jersey' },
+      { icon: '👕', label: 'Jersey' },
       { icon: '⚽', label: 'Match Football' },
     ],
     criteria: [
@@ -46,7 +46,7 @@ const PRIZES: PrizeTier[] = [
     id: 1, place: '3rd Place', medal: '🥉', title: 'Bronze',
     color: 'linear-gradient(135deg,#bf360c,#e64a19)',
     rewards: [
-      { icon: '👕', label: 'Official Jersey' },
+      { icon: '👕', label: 'Jersey' },
     ],
     criteria: [
       { icon: '🎯', label: 'Predict the match winner' },
@@ -142,7 +142,7 @@ const HOW_STEPS = [
 
         <div class="hero-cta">
           <a class="cta-primary" routerLink="/bracket">Fill My Bracket →</a>
-          <a class="cta-secondary" routerLink="/leaderboard">View Scores</a>
+          <a class="cta-secondary" routerLink="/leaderboard">Leaderboard</a>
           <a class="cta-rules" routerLink="/rules">Rules</a>
         </div>
       </div>

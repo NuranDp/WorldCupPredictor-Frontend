@@ -20,7 +20,7 @@ interface TimeLeft {
       </div>
     } @else {
       <div class="countdown">
-        <span class="countdown-label">Bracket locks in</span>
+        <span class="countdown-label">Submit within for max points</span>
         <div class="segments">
           <div class="seg">
             <span class="val">{{ pad(time().days) }}</span>
