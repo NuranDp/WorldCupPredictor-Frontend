@@ -21,6 +21,7 @@ export interface GroupLeaderboardEntry {
   avatarUrl: string | null;
   totalPoints: number;
   submittedAt: string | null;
+  shareToken: string | null;
 }
 
 export interface GroupLeaderboard {

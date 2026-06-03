@@ -113,8 +113,8 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
               <th mat-header-cell *matHeaderCellDef class="view-header"></th>
               <td mat-cell *matCellDef="let e" class="view-cell">
                 @if (e.shareToken) {
-                  <a class="view-btn" [routerLink]="['/share/bracket', e.shareToken]" target="_blank">
-                    👁 View
+                  <a class="view-bracket-link" [routerLink]="['/share/bracket', e.shareToken]" target="_blank">
+                    View Bracket →
                   </a>
                 }
               </td>
@@ -239,15 +239,13 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
       border-radius: 8px; padding: 1px 6px; margin-left: 4px; font-weight: 600;
     }
     .pts-header, .pts-cell { text-align: right !important; }
-    .view-header, .view-cell { text-align: right !important; width: 70px; }
-    .view-btn {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600;
-      color: #1a237e; background: #e8eaf6; text-decoration: none;
-      transition: background 0.15s;
+    .view-header, .view-cell { text-align: right !important; width: 110px; }
+    .view-bracket-link {
+      font-size: 0.78rem; font-weight: 600;
+      color: #1a237e; text-decoration: none;
       white-space: nowrap;
     }
-    .view-btn:hover { background: #c5cae9; }
+    .view-bracket-link:hover { text-decoration: underline; }
     .pts-badge {
       display: inline-block; padding: 3px 10px; border-radius: 12px;
       background: #f5f5f5; font-weight: 600; font-size: 0.9rem;

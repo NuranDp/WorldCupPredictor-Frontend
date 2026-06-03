@@ -1,4 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -10,7 +11,7 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
 @Component({
   selector: 'app-groups',
   standalone: true,
-  imports: [FormsModule, MatProgressSpinnerModule],
+  imports: [FormsModule, MatProgressSpinnerModule, RouterLink],
   template: `
     <!-- ── Page header ──────────────────────────────────────────── -->
     <div class="page-header">
@@ -144,6 +145,7 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
                           <th class="th-rank">Rank</th>
                           <th class="th-player">Player</th>
                           <th class="th-pts">Points</th>
+                          <th class="th-view"></th>
                         </tr>
                       </thead>
                       <tbody>
@@ -168,6 +170,11 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
                               <span class="pts-badge" [class.pts-leader]="e.rank === 1">
                                 {{ e.totalPoints }}
                               </span>
+                            </td>
+                            <td class="td-view">
+                              @if (e.shareToken) {
+                                <a class="view-bracket-link" [routerLink]="['/share/bracket', e.shareToken]" target="_blank">View Bracket →</a>
+                              }
                             </td>
                           </tr>
                         }
@@ -379,6 +386,14 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
 
     .th-rank { width: 50px; text-align: center; }
     .th-pts  { width: 70px; text-align: right; }
+    .th-view { width: 110px; text-align: right; }
+    .td-view { text-align: right; }
+    .view-bracket-link {
+      font-size: 0.78rem; font-weight: 600;
+      color: #1a237e; text-decoration: none;
+      white-space: nowrap;
+    }
+    .view-bracket-link:hover { text-decoration: underline; }
     .td-rank { text-align: center; font-size: 1.1rem; }
     .td-pts  { text-align: right; }
     .rank-num { font-size: 0.85rem; font-weight: 600; color: #aaa; }
