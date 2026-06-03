@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /home
+Allow: /leaderboard
+Allow: /rules
+Allow: /contact
+Disallow: /bracket
+Disallow: /groups
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://www.predictthechampion.com/sitemap.xml

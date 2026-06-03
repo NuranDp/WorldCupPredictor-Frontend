@@ -5,6 +5,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { LeaderboardService, LeaderboardEntry } from '../../core/services/leaderboard.service';
 import { AuthService } from '../../core/services/auth.service';
+import { SeoService } from '../../core/services/seo.service';
 
 type Tier = 'Bronze' | 'Silver' | 'Gold';
 
@@ -237,6 +238,7 @@ type Tier = 'Bronze' | 'Silver' | 'Gold';
 export class LeaderboardComponent implements OnInit {
   private readonly leaderboardService = inject(LeaderboardService);
   private readonly auth = inject(AuthService);
+  private readonly seo = inject(SeoService);
 
   entries = signal<LeaderboardEntry[]>([]);
   loading = signal(true);
@@ -252,6 +254,11 @@ export class LeaderboardComponent implements OnInit {
   currentUserId = () => this.auth.currentUser()?.id ?? -1;
 
   ngOnInit(): void {
+    this.seo.set({
+      title: 'Leaderboard | Predict The Champion',
+      description: 'See who\'s leading the FIFA World Cup 2026 prediction competition.',
+      url: '/leaderboard',
+    });
     this.loadLeaderboard();
   }
 
