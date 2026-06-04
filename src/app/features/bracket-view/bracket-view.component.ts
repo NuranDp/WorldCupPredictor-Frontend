@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, signal, ElementRef, ViewChild, Input } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { BracketService } from '../../core/services/bracket.service';
@@ -19,17 +19,21 @@ interface MatchNode {
   awayScore: number | null;
 }
 
-// Left side: R32→R16→QF→SF (outer to inner)
-const L_R32_GROUPS: [number, number][] = [[1,2],[3,4],[5,6],[7,8]];
-const L_R16_GROUPS: [number, number][] = [[17,18],[19,20]];
-const L_QF_GROUPS:  [number, number][] = [[25,26]];
+// Left side feeds SF1 (29): QF1(25) and QF3(27)
+// QF1 ← R16-17([1,3]) + R16-18([2,5])
+// QF3 ← R16-21([11,12]) + R16-22([9,10])
+const L_R32_GROUPS: [number, number][] = [[1,3],[2,5],[11,12],[9,10]];
+const L_R16_GROUPS: [number, number][] = [[17,18],[21,22]];
+const L_QF_GROUPS:  [number, number][] = [[25,27]];
 const L_SF = 29;
 
-// Right side: SF→QF→R16→R32 (inner to outer, matches left half mirrored)
+// Right side feeds SF2 (30): QF2(26) and QF4(28)
+// QF2 ← R16-19([4,6]) + R16-20([7,8])
+// QF4 ← R16-23([14,16]) + R16-24([13,15])
 const R_SF = 30;
-const R_QF_GROUPS:  [number, number][] = [[27,28]];
-const R_R16_GROUPS: [number, number][] = [[21,22],[23,24]];
-const R_R32_GROUPS: [number, number][] = [[9,10],[11,12],[13,14],[15,16]];
+const R_QF_GROUPS:  [number, number][] = [[26,28]];
+const R_R16_GROUPS: [number, number][] = [[19,20],[23,24]];
+const R_R32_GROUPS: [number, number][] = [[4,6],[7,8],[14,16],[13,15]];
 
 const FINAL = 32;
 const THIRD = 31;
@@ -44,7 +48,8 @@ const THIRD = 31;
     } @else {
       <div class="bv-page">
 
-        <!-- Header -->
+        <!-- Header (hidden when embedded) -->
+        @if (!embedded) {
         <div class="bv-header">
           <div class="bv-header-left">
             @if (!isSharedView()) {
@@ -71,6 +76,7 @@ const THIRD = 31;
             </button>
           </div>
         </div>
+        }
 
         <!-- Bracket -->
         <div class="bracket-scroll">
@@ -484,6 +490,9 @@ export class BracketViewComponent implements OnInit {
   /** true when loaded via a public /share/:id URL (no auth, no edit button) */
   isSharedView = signal(false);
 
+  /** When true: skip data loading (parent already loaded) and hide the header. */
+  @Input() embedded = false;
+
   @ViewChild('bracketEl') bracketEl!: ElementRef<HTMLDivElement>;
 
   loading   = signal(true);
@@ -502,6 +511,12 @@ export class BracketViewComponent implements OnInit {
   readonly THIRD = THIRD;
 
   ngOnInit(): void {
+    // When embedded in another page, data is already loaded — skip all API calls.
+    if (this.embedded) {
+      this.loading.set(false);
+      return;
+    }
+
     this.seo.set({
       title: 'Bracket | Predict The Champion',
       description: 'View this FIFA World Cup 2026 bracket prediction.',

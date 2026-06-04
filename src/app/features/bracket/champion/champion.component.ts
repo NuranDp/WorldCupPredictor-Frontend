@@ -1,10 +1,11 @@
 import { Component, inject, computed } from '@angular/core';
 import { BracketService } from '../../../core/services/bracket.service';
+import { BracketViewComponent } from '../../bracket-view/bracket-view.component';
 
 @Component({
   selector: 'app-champion',
   standalone: true,
-  imports: [],
+  imports: [BracketViewComponent],
   template: `
     <div class="champion-wrap">
       <div class="champion-card" [class.card-revealed]="!!champion()">
@@ -52,12 +53,26 @@ import { BracketService } from '../../../core/services/bracket.service';
 
       </div>
     </div>
+
+    <!-- Full bracket -->
+    <div class="bracket-section">
+      <div class="bracket-section-title">📊 Full Bracket</div>
+      <app-bracket-view [embedded]="true" />
+    </div>
   `,
   styles: [`
     .champion-wrap {
       display: flex;
       justify-content: center;
-      padding: 16px 0 32px;
+      padding: 16px 0 24px;
+    }
+    .bracket-section {
+      margin-top: 8px;
+    }
+    .bracket-section-title {
+      font-size: 0.78rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #888; padding: 0 4px 10px;
     }
 
     /* ── Card ──────────────────────────────────────────────────── */
