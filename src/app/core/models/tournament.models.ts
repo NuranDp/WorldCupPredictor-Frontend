@@ -139,21 +139,23 @@ export interface BracketDraftFull extends BracketDraftMeta {
 }
 
 // Bracket tree: slot → [child slot A, child slot B]
+// R16 pairings follow official FIFA 2026 schedule (matches 89-96)
+// Slots 1-16 = R32 matches 73-88 (slot N = match 72+N)
 export const BRACKET_TREE: Record<number, [number, number]> = {
-  17: [1, 2],
-  18: [3, 4],
-  19: [5, 6],
-  20: [7, 8],
-  21: [9, 10],
-  22: [11, 12],
-  23: [13, 14],
-  24: [15, 16],
-  25: [17, 18],
-  26: [19, 20],
-  27: [21, 22],
-  28: [23, 24],
-  29: [25, 26],
-  30: [27, 28],
+  17: [1, 3],   // Match 89: W73 vs W75
+  18: [2, 5],   // Match 90: W74 vs W77
+  19: [4, 6],   // Match 91: W76 vs W78
+  20: [7, 8],   // Match 92: W79 vs W80
+  21: [11, 12], // Match 93: W83 vs W84
+  22: [9, 10],  // Match 94: W81 vs W82
+  23: [14, 16], // Match 95: W86 vs W88
+  24: [13, 15], // Match 96: W85 vs W87
+  25: [17, 18],  // QF1: W M89 vs W M90
+  26: [19, 20],  // QF2: W M91 vs W M92
+  27: [21, 22],  // QF3: W M93 vs W M94
+  28: [23, 24],  // QF4: W M95 vs W M96
+  29: [25, 27],  // SF1: W QF1 vs W QF3
+  30: [26, 28],  // SF2: W QF2 vs W QF4
   31: [29, 30], // 3rd place (losers)
   32: [29, 30], // Final (winners)
 };

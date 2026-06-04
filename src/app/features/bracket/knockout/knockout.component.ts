@@ -62,7 +62,7 @@ const ROUNDS: RoundConfig[] = [
       <div class="progress-track">
         <div class="progress-fill" [style.width.%]="totalProgressPct()"></div>
       </div>
-      <span class="progress-label">{{ totalPicked() }} / 31 knockout picks</span>
+      <span class="progress-label">{{ totalPicked() }} / 32 knockout picks</span>
     </div>
 
     <!-- ── Animated round panel ──────────────────────────────────── -->
@@ -77,11 +77,16 @@ const ROUNDS: RoundConfig[] = [
             <span class="ph-super">{{ round.superLabel }}</span>
             <span class="ph-name">{{ round.label }}</span>
           </div>
-          <div class="ph-count" [class.ph-count-done]="isRoundDone(round)">
-            <span class="ph-num">{{ pickedCount(round) }}</span>
-            <span class="ph-sep">/</span>
-            <span class="ph-tot">{{ availableCount(round) }}</span>
-            @if (isRoundDone(round)) { <span class="ph-check">✓</span> }
+          <div class="ph-right">
+            <button class="pick-all-btn" (click)="pickAllByRanking(round)">
+              ★ Pick all by ranking
+            </button>
+            <div class="ph-count" [class.ph-count-done]="isRoundDone(round)">
+              <span class="ph-num">{{ pickedCount(round) }}</span>
+              <span class="ph-sep">/</span>
+              <span class="ph-tot">{{ availableCount(round) }}</span>
+              @if (isRoundDone(round)) { <span class="ph-check">✓</span> }
+            </div>
           </div>
         </div>
 
@@ -98,7 +103,13 @@ const ROUNDS: RoundConfig[] = [
                 <div class="match-slot">
                   @if (slot === 32) { 🏆 Final }
                   @else if (slot === 31) { 🥉 3rd Place }
-                  @else { Match {{ slot }} }
+                  @else if (slot === 29) { SF1 }
+                  @else if (slot === 30) { SF2 }
+                  @else if (slot === 25) { QF1 }
+                  @else if (slot === 26) { QF2 }
+                  @else if (slot === 27) { QF3 }
+                  @else if (slot === 28) { QF4 }
+                  @else { Match {{ slot + 72 }} }
                 </div>
 
                 <!-- Kick-off urgency warning -->
@@ -349,12 +360,20 @@ const ROUNDS: RoundConfig[] = [
       transition: background 0.4s ease;
     }
     .ph-left { display: flex; flex-direction: column; gap: 1px; }
+    .ph-right { display: flex; align-items: center; gap: 12px; }
     .ph-super {
       font-size: 0.62rem; font-weight: 700;
       text-transform: uppercase; letter-spacing: 0.14em; opacity: 0.7;
     }
     .ph-name { font-size: 1.15rem; font-weight: 800; letter-spacing: 0.02em; }
     .ph-count { display: flex; align-items: baseline; gap: 2px; opacity: 0.85; }
+    .pick-all-btn {
+      padding: 5px 12px; border-radius: 16px; border: 1.5px solid rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.15); color: white;
+      font-size: 0.72rem; font-weight: 700; cursor: pointer;
+      white-space: nowrap; transition: background 0.15s;
+    }
+    .pick-all-btn:hover { background: rgba(255,255,255,0.28); }
     .ph-count.ph-count-done { opacity: 1; }
     .ph-num  { font-size: 1.6rem; font-weight: 800; line-height: 1; }
     .ph-sep  { font-size: 1rem; opacity: 0.6; }
@@ -605,7 +624,7 @@ export class KnockoutComponent {
   totalPicked = computed(() =>
     this.bracketService.knockoutPicks().filter(p => p.pickedTeamId !== null).length
   );
-  totalProgressPct = computed(() => (this.totalPicked() / 31) * 100);
+  totalProgressPct = computed(() => (this.totalPicked() / 32) * 100);
 
   selectRound(i: number): void {
     if (i === this.activeIdx() || i < 0 || i >= this.rounds.length) return;
@@ -673,6 +692,15 @@ export class KnockoutComponent {
         this.bracketService.setKnockoutScore(matchId, 1, null);
       }
     }
+  }
+
+  pickAllByRanking(round: RoundConfig): void {
+    round.slots.forEach(slot => {
+      const m = this.getMatch(slot);
+      if (m?.home.team && m?.away.team) {
+        this.pickByRanking(m.matchId, m.home.team, m.away.team, m.pickedTeamId, slot);
+      }
+    });
   }
 
   clampScore(event: Event): void {
@@ -744,7 +772,20 @@ export class KnockoutComponent {
       return p ? (side === 'home' ? p[0] : p[1]) : 'TBD';
     }
     const c = BRACKET_TREE[slot];
-    if (c) return `Winner M${side === 'home' ? c[0] : c[1]}`;
-    return 'TBD';
+    if (!c) return 'TBD';
+    const childSlot = side === 'home' ? c[0] : c[1];
+    return `Winner ${this.slotName(childSlot)}`;
+  }
+
+  private slotName(slot: number): string {
+    if (slot >= 1  && slot <= 16) return `Match ${72 + slot}`;   // R32: 73–88
+    if (slot >= 17 && slot <= 24) return `Match ${72 + slot}`;   // R16: 89–96
+    if (slot === 25) return 'QF1';
+    if (slot === 26) return 'QF2';
+    if (slot === 27) return 'QF3';
+    if (slot === 28) return 'QF4';
+    if (slot === 29) return 'SF1';
+    if (slot === 30) return 'SF2';
+    return `M${slot}`;
   }
 }
