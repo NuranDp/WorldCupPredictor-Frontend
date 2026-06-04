@@ -81,23 +81,40 @@ export interface BracketDto {
 }
 
 // R32 slot → [homeDesc, awayDesc] labels
+// Slots map to FIFA matches 73-88 in order (slot 1 = match 73, slot 16 = match 88)
+// Away label '3rd' means the away team is a best-3rd-place qualifier;
+// eligible source groups are defined in R32_THIRD_ELIGIBLE below.
 export const R32_PAIRINGS: Record<number, [string, string]> = {
-  1:  ['A 1st', 'B 2nd'],
-  2:  ['B 1st', 'A 2nd'],
-  3:  ['C 1st', 'D 2nd'],
-  4:  ['D 1st', 'C 2nd'],
-  5:  ['E 1st', 'F 2nd'],
-  6:  ['F 1st', 'E 2nd'],
-  7:  ['G 1st', 'H 2nd'],
-  8:  ['H 1st', 'G 2nd'],
-  9:  ['I 1st', 'J 2nd'],
-  10: ['J 1st', 'I 2nd'],
-  11: ['K 1st', 'L 2nd'],
-  12: ['L 1st', 'K 2nd'],
-  13: ['Best 3rd #1', 'Best 3rd #2'],
-  14: ['Best 3rd #3', 'Best 3rd #4'],
-  15: ['Best 3rd #5', 'Best 3rd #6'],
-  16: ['Best 3rd #7', 'Best 3rd #8'],
+  1:  ['A 2nd', 'B 2nd'],   // Match 73: Runner-up A vs Runner-up B
+  2:  ['E 1st', '3rd'],     // Match 74: Winner E  vs Best 3rd (A/B/C/D/F)
+  3:  ['F 1st', 'C 2nd'],   // Match 75: Winner F  vs Runner-up C
+  4:  ['C 1st', 'F 2nd'],   // Match 76: Winner C  vs Runner-up F
+  5:  ['I 1st', '3rd'],     // Match 77: Winner I  vs Best 3rd (C/D/F/G/H)
+  6:  ['E 2nd', 'I 2nd'],   // Match 78: Runner-up E vs Runner-up I
+  7:  ['A 1st', '3rd'],     // Match 79: Winner A  vs Best 3rd (C/E/F/H/I)
+  8:  ['L 1st', '3rd'],     // Match 80: Winner L  vs Best 3rd (E/H/I/J/K)
+  9:  ['D 1st', '3rd'],     // Match 81: Winner D  vs Best 3rd (B/E/F/I/J)
+  10: ['G 1st', '3rd'],     // Match 82: Winner G  vs Best 3rd (A/E/H/I/J)
+  11: ['K 2nd', 'L 2nd'],   // Match 83: Runner-up K vs Runner-up L
+  12: ['H 1st', 'J 2nd'],   // Match 84: Winner H  vs Runner-up J
+  13: ['B 1st', '3rd'],     // Match 85: Winner B  vs Best 3rd (E/F/G/I/J)
+  14: ['J 1st', 'H 2nd'],   // Match 86: Winner J  vs Runner-up H
+  15: ['K 1st', '3rd'],     // Match 87: Winner K  vs Best 3rd (D/E/I/J/L)
+  16: ['D 2nd', 'G 2nd'],   // Match 88: Runner-up D vs Runner-up G
+};
+
+// For each R32 slot that hosts a best-3rd-place team (away side),
+// the eligible source groups from which that 3rd-place team must come.
+// Used to assign the 8 best-3rd picks to their correct slots via bipartite matching.
+export const R32_THIRD_ELIGIBLE: Record<number, string[]> = {
+  2:  ['A', 'B', 'C', 'D', 'F'],   // Match 74
+  5:  ['C', 'D', 'F', 'G', 'H'],   // Match 77
+  7:  ['C', 'E', 'F', 'H', 'I'],   // Match 79
+  8:  ['E', 'H', 'I', 'J', 'K'],   // Match 80
+  9:  ['B', 'E', 'F', 'I', 'J'],   // Match 81
+  10: ['A', 'E', 'H', 'I', 'J'],   // Match 82
+  13: ['E', 'F', 'G', 'I', 'J'],   // Match 85
+  15: ['D', 'E', 'I', 'J', 'L'],   // Match 87
 };
 
 // ── Draft models ──────────────────────────────────────────────────────────────

@@ -3,8 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import {
   BracketDto, GroupPick, KnockoutPick, Team,
-  TournamentGroup, MatchSlot, BRACKET_TREE, R32_PAIRINGS,
+  TournamentGroup, MatchSlot, BRACKET_TREE, R32_PAIRINGS, R32_THIRD_ELIGIBLE,
 } from '../models/tournament.models';
+import { FIFA_THIRD_PLACE_MATRIX } from '../models/third-place-matrix';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -13,7 +14,7 @@ export class BracketService {
 
   groupPicks = signal<GroupPick[]>([]);
   knockoutPicks = signal<KnockoutPick[]>([]);
-  /** 8 slots (index 0-7 = rank 1-8). Pairing: 0v1→slot13, 2v3→slot14, 4v5→slot15, 6v7→slot16 */
+  /** 8 slots (index 0-7 = rank 1-8). Assigned to R32 slots via group-eligibility matching, not rank order. */
   best3rdPicks = signal<(number | null)[]>(Array(8).fill(null));
   isLocked = signal(false);
   totalPoints = signal(0);
@@ -23,6 +24,40 @@ export class BracketService {
 
   // All teams from the tournament, keyed by id for quick lookup
   private teamMap = signal<Record<number, Team>>({});
+  // Maps teamId → groupName (e.g. 42 → 'E'), built from TournamentGroup data
+  private teamGroupMap = signal<Record<number, string>>({});
+
+  /**
+   * Look up the FIFA 495-combination matrix to assign the 8 best-3rd picks to
+   * their correct R32 slots. Returns slot → teamId (null if unresolved).
+   *
+   * The matrix key is the 8 qualifying group letters sorted alphabetically.
+   * If the user's picks don't form a valid known combination (e.g. two picks
+   * from the same group), the result will be null for unresolvable slots.
+   */
+  readonly thirdPlaceAssignment = computed<Record<number, number | null>>(() => {
+    const picks = this.best3rdPicks().filter((t): t is number => t !== null);
+    const groupMap = this.teamGroupMap();
+
+    // Build group → teamId map from picks
+    const groupToTeam: Record<string, number> = {};
+    for (const teamId of picks) {
+      const grp = groupMap[teamId];
+      if (grp) groupToTeam[grp] = teamId;
+    }
+
+    // Matrix key = sorted qualifying group letters
+    const key = Object.keys(groupToTeam).sort().join('');
+    const slotToGroup = FIFA_THIRD_PLACE_MATRIX[key];
+
+    const result: Record<number, number | null> = {};
+    const thirdSlots = Object.keys(R32_THIRD_ELIGIBLE).map(Number);
+    for (const slot of thirdSlots) {
+      const grp = slotToGroup?.[slot];
+      result[slot] = grp ? (groupToTeam[grp] ?? null) : null;
+    }
+    return result;
+  });
 
   private static readonly CACHE_KEY = 'wcp_bracket_draft';
 
@@ -64,13 +99,19 @@ export class BracketService {
     this.shareToken.set(null);
     this.tier.set('Bronze');
     this.teamMap.set({});
+    this.teamGroupMap.set({});
     localStorage.removeItem(BracketService.CACHE_KEY);
   }
 
   loadTeams(groups: TournamentGroup[]): void {
     const map: Record<number, Team> = {};
-    groups.forEach(g => g.teams.forEach(t => (map[t.id] = t)));
+    const groupMap: Record<number, string> = {};
+    groups.forEach(g => g.teams.forEach(t => {
+      map[t.id] = t;
+      groupMap[t.id] = g.name; // e.g. 'A', 'B', … 'L'
+    }));
     this.teamMap.set(map);
+    this.teamGroupMap.set(groupMap);
   }
 
   getTeam(id: number | null): Team | null {
@@ -139,7 +180,7 @@ export class BracketService {
     picks[index] = teamId;
     this.best3rdPicks.set(picks);
     // Clear R32 knockout picks for slots 13-16 since participants changed
-    this.clearSlots13to16KnockoutPicks();
+    this.clearThirdPlaceSlotsKnockoutPicks();
   }
 
   /** Add a team to the first empty slot, or remove it if already present. */
@@ -153,7 +194,7 @@ export class BracketService {
       if (emptyIdx >= 0) picks[emptyIdx] = teamId;
     }
     this.best3rdPicks.set(picks);
-    this.clearSlots13to16KnockoutPicks();
+    this.clearThirdPlaceSlotsKnockoutPicks();
   }
 
   isBest3rdSelected(teamId: number): boolean {
@@ -223,25 +264,23 @@ export class BracketService {
   }
 
   private resolveR32Team(slot: number, side: 'home' | 'away'): Team | null {
-    // Slots 13-16 are populated by best-3rd-place picks
-    if (slot >= 13 && slot <= 16) {
-      // Pairing: slot13=ranks1&2, slot14=ranks3&4, slot15=ranks5&6, slot16=ranks7&8
-      const baseIdx = (slot - 13) * 2;           // 0, 2, 4, 6
-      const idx = baseIdx + (side === 'home' ? 0 : 1);
-      const teamId = this.best3rdPicks()[idx] ?? null;
-      return this.getTeam(teamId);
-    }
-
     const pairingKey = R32_PAIRINGS[slot];
     if (!pairingKey) return null;
 
-    // Decode e.g. "A 1st" → group A, first pick
     const label = side === 'home' ? pairingKey[0] : pairingKey[1];
+
+    // '3rd' → look up this slot's assigned best-3rd-place team via group-eligibility matching
+    if (label === '3rd') {
+      const teamId = this.thirdPlaceAssignment()[slot] ?? null;
+      return this.getTeam(teamId);
+    }
+
+    // Decode e.g. "A 1st" / "A 2nd" → group A, winner or runner-up
     const match = label.match(/^([A-L]) (1st|2nd)$/);
     if (!match) return null;
 
     const groupName = match[1];
-    const position = match[2]; // '1st' or '2nd'
+    const position = match[2];
     const groupPick = this.groupPicks().find(g => g.groupName === groupName);
     if (!groupPick) return null;
 
@@ -267,10 +306,12 @@ export class BracketService {
     this.best3rdPicks.set(updated);
   }
 
-  private clearSlots13to16KnockoutPicks(): void {
-    // Clear knockout winner picks for slots 13-16 and their downstream
-    const slotsToReset = new Set<number>([13, 14, 15, 16]);
-    [13, 14, 15, 16].forEach(s =>
+  private clearThirdPlaceSlotsKnockoutPicks(): void {
+    // Clear knockout winner picks for all 8 third-place R32 slots and their downstream.
+    // Third-place slots are: 2,5,7,8,9,10,13,15 (the away '3rd' entries in R32_PAIRINGS).
+    const thirdSlots = Object.keys(R32_THIRD_ELIGIBLE).map(Number);
+    const slotsToReset = new Set<number>(thirdSlots);
+    thirdSlots.forEach(s =>
       this.getDownstreamSlots(s).forEach(d => slotsToReset.add(d))
     );
     this.knockoutPicks.set(
