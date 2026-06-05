@@ -1,4 +1,4 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, ViewChild } from '@angular/core';
 import { BracketService } from '../../../core/services/bracket.service';
 import { BracketViewComponent } from '../../bracket-view/bracket-view.component';
 
@@ -56,8 +56,24 @@ import { BracketViewComponent } from '../../bracket-view/bracket-view.component'
 
     <!-- Full bracket -->
     <div class="bracket-section">
-      <div class="bracket-section-title">📊 Full Bracket</div>
-      <app-bracket-view [embedded]="true" />
+      <div class="bracket-section-header">
+        <span class="bracket-section-title">📊 Full Bracket</span>
+        <div class="bracket-section-actions">
+          <button class="bs-btn" (click)="bracketView.copyShareLink()" [class.copied]="bracketView.linkCopied()">
+            {{ bracketView.linkCopied() ? '✓ Copied!' : '🔗 Share' }}
+          </button>
+          <button class="bs-btn bs-story-btn" (click)="bracketView.shareStory()" [disabled]="bracketView.exporting()">
+            {{ bracketView.exporting() === 'story' ? '⏳ Generating…' : '📲 Share Story' }}
+          </button>
+          <button class="bs-btn" (click)="bracketView.downloadImage()" [disabled]="bracketView.exporting()">
+            {{ bracketView.exporting() === 'img' ? '⏳ Exporting…' : '🖼 Download Image' }}
+          </button>
+          <button class="bs-btn" (click)="bracketView.downloadPdf()" [disabled]="bracketView.exporting()">
+            {{ bracketView.exporting() === 'pdf' ? '⏳ Exporting…' : '📄 Download PDF' }}
+          </button>
+        </div>
+      </div>
+      <app-bracket-view #bracketView [embedded]="true" />
     </div>
   `,
   styles: [`
@@ -66,14 +82,28 @@ import { BracketViewComponent } from '../../bracket-view/bracket-view.component'
       justify-content: center;
       padding: 16px 0 24px;
     }
-    .bracket-section {
-      margin-top: 8px;
+    .bracket-section { margin-top: 8px; }
+    .bracket-section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 8px; padding: 0 4px 10px;
     }
     .bracket-section-title {
       font-size: 0.78rem; font-weight: 700;
       text-transform: uppercase; letter-spacing: 0.1em;
-      color: #888; padding: 0 4px 10px;
+      color: #888;
     }
+    .bracket-section-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .bs-btn {
+      padding: 6px 12px; border-radius: 20px;
+      border: 1.5px solid #c5cae9; background: white;
+      color: #1a237e; font-size: 0.75rem; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .bs-btn:hover:not(:disabled) { background: #e8eaf6; border-color: #1a237e; }
+    .bs-btn:disabled { opacity: 0.5; cursor: default; }
+    .bs-btn.copied { background: #e8f5e9; border-color: #2e7d32; color: #2e7d32; }
+    .bs-story-btn { background: linear-gradient(135deg, #e91e63, #9c27b0); color: white; border-color: transparent; }
+    .bs-story-btn:hover:not(:disabled) { background: linear-gradient(135deg, #c2185b, #7b1fa2); border-color: transparent; }
 
     /* ── Card ──────────────────────────────────────────────────── */
     .champion-card {
@@ -229,6 +259,7 @@ import { BracketViewComponent } from '../../bracket-view/bracket-view.component'
 export class ChampionComponent {
   private readonly bracketService = inject(BracketService);
   readonly champion = computed(() => this.bracketService.champion);
+  @ViewChild('bracketView') bracketView!: BracketViewComponent;
 
   pendingSteps = computed(() => {
     const picks = this.bracketService.knockoutPicks();
