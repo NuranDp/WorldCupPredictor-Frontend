@@ -232,7 +232,7 @@ const THIRD = 31;
 
       <!-- Header -->
       <div class="sc-header">
-        <span class="sc-logo">🏆 Predict Champion</span>
+        <span class="sc-logo">🏆 Predict The Champion</span>
         <span class="sc-subtitle">FIFA World Cup 2026</span>
       </div>
 
@@ -337,7 +337,7 @@ const THIRD = 31;
       </div>
       <div class="sc-url-bar">
         <span class="sc-url-icon">🔗</span>
-        <span class="sc-url-text">predictchampion.com</span>
+        <span class="sc-url-text">predictthechampion.com</span>
       </div>
     </div>
 

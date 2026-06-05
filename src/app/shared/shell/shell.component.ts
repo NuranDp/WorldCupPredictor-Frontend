@@ -17,7 +17,7 @@ import { AuthService } from '../../core/services/auth.service';
       <div class="drawer-header">
         <a class="brand" routerLink="/home" (click)="closeDrawer()">
           <span class="brand-icon">🏆</span>
-          <span class="brand-wc">Predict</span><span class="brand-year">Champion</span>
+          <span class="brand-wc">Predict</span><span class="brand-year">The Champion</span>
         </a>
         <button class="drawer-close" (click)="closeDrawer()" aria-label="Close menu">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -85,7 +85,7 @@ import { AuthService } from '../../core/services/auth.service';
         <!-- Brand -->
         <a class="brand" routerLink="/home">
           <span class="brand-icon">🏆</span>
-          <span class="brand-wc">Predict</span><span class="brand-year">Champion</span>
+          <span class="brand-wc">Predict</span><span class="brand-year">The Champion</span>
         </a>
 
         <!-- Nav links (desktop) -->
