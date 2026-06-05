@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, ElementRef, ViewChild, Input } from '@angular/core';
+import { Component, inject, OnInit, signal, ElementRef, ViewChild, Input, computed } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { BracketService } from '../../core/services/bracket.service';
@@ -67,6 +67,9 @@ const THIRD = 31;
           <div class="bv-actions">
             <button class="bv-action-btn" (click)="copyShareLink()" [class.copied]="linkCopied()">
               {{ linkCopied() ? '✓ Copied!' : '🔗 Share' }}
+            </button>
+            <button class="bv-action-btn bv-story-btn" (click)="shareStory()" [disabled]="exporting()">
+              {{ exporting() === 'story' ? '⏳ Generating…' : '📲 Share Story' }}
             </button>
             <button class="bv-action-btn" (click)="downloadImage()" [disabled]="exporting()">
               {{ exporting() === 'img' ? '⏳ Exporting…' : '🖼 Download Image' }}
@@ -222,6 +225,122 @@ const THIRD = 31;
       </div>
     }
 
+    <!-- ── Hidden Story Card (9:16) ─────────────────────────────── -->
+    <div class="story-card" #storyCard>
+      <!-- Background gradient -->
+      <div class="sc-bg"></div>
+
+      <!-- Header -->
+      <div class="sc-header">
+        <span class="sc-logo">🏆 Predict Champion</span>
+        <span class="sc-subtitle">FIFA World Cup 2026</span>
+      </div>
+
+      <!-- Champion -->
+      <div class="sc-champion">
+        <div class="sc-section-label">🥇 My Champion Pick</div>
+        @if (bracketService.champion) {
+          <div class="sc-champ-card">
+            <img [src]="bracketService.champion.flagUrl" class="sc-champ-flag">
+            <span class="sc-champ-name">{{ bracketService.champion.name }}</span>
+            <span class="sc-crown">👑</span>
+          </div>
+        } @else {
+          <div class="sc-champ-card sc-tbd">TBD</div>
+        }
+      </div>
+
+      <!-- Final -->
+      <div class="sc-section">
+        <div class="sc-section-label">🏆 Final</div>
+        <div class="sc-match">
+          <div class="sc-team">
+            @if (getNode(FINAL).home) {
+              <img [src]="getNode(FINAL).home!.flagUrl" class="sc-flag">
+              <span>{{ getNode(FINAL).home!.fifaCode }}</span>
+            } @else { <span class="sc-tbd-sm">TBD</span> }
+          </div>
+          <span class="sc-vs">vs</span>
+          <div class="sc-team">
+            @if (getNode(FINAL).away) {
+              <img [src]="getNode(FINAL).away!.flagUrl" class="sc-flag">
+              <span>{{ getNode(FINAL).away!.fifaCode }}</span>
+            } @else { <span class="sc-tbd-sm">TBD</span> }
+          </div>
+        </div>
+      </div>
+
+      <!-- Semi Finals -->
+      <div class="sc-section">
+        <div class="sc-section-label">🎯 Semi Finals</div>
+        <div class="sc-sf-row">
+          <div class="sc-match sc-match-sm">
+            <div class="sc-team">
+              @if (getNode(L_SF).home) {
+                <img [src]="getNode(L_SF).home!.flagUrl" class="sc-flag">
+                <span>{{ getNode(L_SF).home!.fifaCode }}</span>
+              } @else { <span class="sc-tbd-sm">TBD</span> }
+            </div>
+            <span class="sc-vs">vs</span>
+            <div class="sc-team">
+              @if (getNode(L_SF).away) {
+                <img [src]="getNode(L_SF).away!.flagUrl" class="sc-flag">
+                <span>{{ getNode(L_SF).away!.fifaCode }}</span>
+              } @else { <span class="sc-tbd-sm">TBD</span> }
+            </div>
+          </div>
+          <div class="sc-match sc-match-sm">
+            <div class="sc-team">
+              @if (getNode(R_SF).home) {
+                <img [src]="getNode(R_SF).home!.flagUrl" class="sc-flag">
+                <span>{{ getNode(R_SF).home!.fifaCode }}</span>
+              } @else { <span class="sc-tbd-sm">TBD</span> }
+            </div>
+            <span class="sc-vs">vs</span>
+            <div class="sc-team">
+              @if (getNode(R_SF).away) {
+                <img [src]="getNode(R_SF).away!.flagUrl" class="sc-flag">
+                <span>{{ getNode(R_SF).away!.fifaCode }}</span>
+              } @else { <span class="sc-tbd-sm">TBD</span> }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quarter Finals -->
+      <div class="sc-section">
+        <div class="sc-section-label">⚡ Quarter Finals</div>
+        <div class="sc-qf-grid">
+          @for (slot of [25, 26, 27, 28]; track slot) {
+            <div class="sc-match sc-match-sm">
+              <div class="sc-team">
+                @if (getNode(slot).home) {
+                  <img [src]="getNode(slot).home!.flagUrl" class="sc-flag">
+                  <span>{{ getNode(slot).home!.fifaCode }}</span>
+                } @else { <span class="sc-tbd-sm">TBD</span> }
+              </div>
+              <span class="sc-vs">vs</span>
+              <div class="sc-team">
+                @if (getNode(slot).away) {
+                  <img [src]="getNode(slot).away!.flagUrl" class="sc-flag">
+                  <span>{{ getNode(slot).away!.fifaCode }}</span>
+                } @else { <span class="sc-tbd-sm">TBD</span> }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Tier + Footer -->
+      <div class="sc-footer">
+        <span class="sc-tier">{{ bracketService.tier() }} Tier</span>
+      </div>
+      <div class="sc-url-bar">
+        <span class="sc-url-icon">🔗</span>
+        <span class="sc-url-text">predictchampion.com</span>
+      </div>
+    </div>
+
     <!-- Match card template -->
     <ng-template #matchCard let-n="n" let-side="side">
       <div class="match-card" [class.mc-winner-set]="n.winner">
@@ -257,8 +376,11 @@ const THIRD = 31;
     /* ── Header ─────────────────────────────────────────────────── */
     .bv-page { padding: 16px 20px; }
     .bv-header {
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 10px; margin-bottom: 16px;
+      display: flex; flex-direction: column;
+      gap: 10px; margin-bottom: 16px;
+    }
+    @media (min-width: 600px) {
+      .bv-header { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; }
     }
     .bv-header-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .bv-edit-btn {
@@ -275,7 +397,15 @@ const THIRD = 31;
       font-size: 0.82rem; font-weight: 700; color: #1a237e;
     }
     .bv-flag { width: 18px; height: 13px; object-fit: cover; border-radius: 2px; }
-    .bv-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .bv-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+    }
+    @media (min-width: 600px) {
+      .bv-actions { display: flex; flex-wrap: wrap; width: auto; }
+    }
     .bv-action-btn {
       padding: 6px 14px; border-radius: 20px; border: 1.5px solid #c5cae9;
       background: white; color: #1a237e; font-size: 0.78rem; font-weight: 600; cursor: pointer;
@@ -284,6 +414,89 @@ const THIRD = 31;
     .bv-action-btn:hover:not(:disabled) { background: #e8eaf6; border-color: #1a237e; }
     .bv-action-btn:disabled { opacity: 0.5; cursor: default; }
     .bv-action-btn.copied { background: #e8f5e9; border-color: #2e7d32; color: #2e7d32; }
+    .bv-story-btn { background: linear-gradient(135deg, #e91e63, #9c27b0); color: white; border-color: transparent; }
+    .bv-story-btn:hover:not(:disabled) { background: linear-gradient(135deg, #c2185b, #7b1fa2); border-color: transparent; }
+
+    /* ── Story Card ──────────────────────────────────────────────── */
+    .story-card {
+      position: fixed;
+      left: -9999px; top: 0;
+      visibility: hidden;
+      width: 405px; height: 720px;
+      background: linear-gradient(160deg, #0d1b6e 0%, #1a237e 40%, #1b0a4e 100%);
+      border-radius: 20px;
+      display: flex; flex-direction: column;
+      padding: 32px 28px 24px;
+      box-sizing: border-box;
+      gap: 18px;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+    .sc-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 20% 10%, rgba(255,255,255,0.07) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 90%, rgba(255,193,7,0.08) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .sc-header {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+    }
+    .sc-logo {
+      font-size: 1.2rem; font-weight: 800; color: #ffd700; letter-spacing: 0.02em;
+    }
+    .sc-subtitle {
+      font-size: 0.72rem; color: rgba(255,255,255,0.55); letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .sc-champion {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .sc-section {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .sc-section-label {
+      font-size: 0.68rem; font-weight: 700; color: rgba(255,255,255,0.5);
+      text-transform: uppercase; letter-spacing: 0.1em; text-align: center;
+    }
+    .sc-champ-card {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(255,215,0,0.12); border: 1.5px solid rgba(255,215,0,0.35);
+      border-radius: 14px; padding: 14px 24px;
+      width: 100%; box-sizing: border-box; justify-content: center;
+    }
+    .sc-champ-flag { width: 48px; height: 34px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    .sc-champ-name { font-size: 1.3rem; font-weight: 800; color: #ffd700; }
+    .sc-crown { font-size: 1.5rem; }
+    .sc-match {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: rgba(255,255,255,0.07); border-radius: 10px; padding: 10px 16px;
+    }
+    .sc-match-sm { padding: 8px 12px; flex: 1; }
+    .sc-sf-row { display: flex; gap: 8px; }
+    .sc-qf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .sc-team { display: flex; align-items: center; gap: 6px; color: white; font-size: 0.85rem; font-weight: 700; }
+    .sc-flag { width: 24px; height: 17px; object-fit: cover; border-radius: 3px; }
+    .sc-vs { font-size: 0.72rem; color: rgba(255,255,255,0.4); font-weight: 600; }
+    .sc-tbd { color: rgba(255,255,255,0.4); font-size: 0.9rem; }
+    .sc-tbd-sm { color: rgba(255,255,255,0.35); font-size: 0.75rem; }
+    .sc-footer {
+      margin-top: auto;
+      display: flex; justify-content: center; align-items: center;
+      border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px;
+    }
+    .sc-tier {
+      font-size: 0.75rem; font-weight: 700; color: #ffd700;
+      background: rgba(255,215,0,0.12); border-radius: 20px; padding: 4px 12px;
+      border: 1px solid rgba(255,215,0,0.25);
+    }
+    .sc-url-bar {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: rgba(255,215,0,0.15);
+      border: 1.5px solid rgba(255,215,0,0.4);
+      border-radius: 30px;
+      padding: 10px 20px;
+    }
+    .sc-url-icon { font-size: 1rem; }
+    .sc-url-text { font-size: 1rem; font-weight: 800; color: #ffd700; letter-spacing: 0.03em; }
 
     /* ── Scroll wrapper ──────────────────────────────────────────── */
     .bracket-scroll { overflow-x: auto; padding-bottom: 16px; }
@@ -494,9 +707,10 @@ export class BracketViewComponent implements OnInit {
   @Input() embedded = false;
 
   @ViewChild('bracketEl') bracketEl!: ElementRef<HTMLDivElement>;
+  @ViewChild('storyCard') storyCardEl!: ElementRef<HTMLDivElement>;
 
   loading   = signal(true);
-  exporting = signal<'img' | 'pdf' | null>(null);
+  exporting = signal<'img' | 'pdf' | 'story' | null>(null);
   linkCopied = signal(false);
 
   readonly L_R32_GROUPS = L_R32_GROUPS;
@@ -564,6 +778,35 @@ export class BracketViewComponent implements OnInit {
       this.linkCopied.set(true);
       setTimeout(() => this.linkCopied.set(false), 2500);
     } catch { /* ignore */ }
+  }
+
+  async shareStory(): Promise<void> {
+    if (this.exporting()) return;
+    this.exporting.set('story');
+    const el = this.storyCardEl.nativeElement;
+    // Bring into viewport so html-to-image can render it
+    el.style.position = 'fixed';
+    el.style.left = '0';
+    el.style.top = '0';
+    el.style.zIndex = '99999';
+    el.style.visibility = 'visible';
+    try {
+      await new Promise(r => setTimeout(r, 100)); // let Angular render flags/images
+      const dataUrl = await toPng(el, { cacheBust: true, pixelRatio: 3, width: 405, height: 720 });
+      const link = document.createElement('a');
+      link.download = 'my-bracket-story.png';
+      link.href = dataUrl;
+      link.click();
+    } catch (e) { console.error(e); }
+    finally {
+      // Hide it again
+      el.style.position = 'fixed';
+      el.style.left = '-9999px';
+      el.style.top = '0';
+      el.style.zIndex = '';
+      el.style.visibility = 'hidden';
+      this.exporting.set(null);
+    }
   }
 
   async downloadImage(): Promise<void> {
