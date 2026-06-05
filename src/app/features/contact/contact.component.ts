@@ -23,6 +23,12 @@ import { SeoService } from '../../core/services/seo.service';
           </svg>
           Message us on Facebook
         </a>
+        <div class="contact-divider">
+          <span>or email us directly</span>
+        </div>
+        <a href="mailto:support@predictthechampion.com" class="email-btn">
+          ✉️ support&#64;predictthechampion.com
+        </a>
         <p class="contact-response">We typically respond within 24 hours.</p>
       </div>
     </div>
@@ -66,6 +72,25 @@ import { SeoService } from '../../core/services/seo.service';
       transform: translateY(-2px);
     }
     .fb-icon { width: 22px; height: 22px; flex-shrink: 0; }
+    .contact-divider {
+      display: flex; align-items: center; gap: 10px;
+      margin: 20px 0; color: #bbb; font-size: 0.8rem;
+    }
+    .contact-divider::before, .contact-divider::after {
+      content: ''; flex: 1; height: 1px; background: #e0e0e0;
+    }
+    .email-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #f5f5f5; color: #1a237e; text-decoration: none;
+      padding: 12px 24px; border-radius: 50px;
+      font-size: 0.9rem; font-weight: 700;
+      border: 2px solid #e0e0e0;
+      transition: all 0.2s; word-break: break-all;
+    }
+    .email-btn:hover {
+      background: #e8eaf6; border-color: #1a237e;
+      transform: translateY(-2px);
+    }
     .contact-response { margin: 20px 0 0; font-size: 0.8rem; color: #aaa; }
     @media (max-width: 480px) {
       .contact-card { padding: 36px 24px; }
