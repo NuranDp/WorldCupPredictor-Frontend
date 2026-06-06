@@ -225,6 +225,110 @@ const THIRD = 31;
       </div>
     }
 
+    <!-- ── Story Preview Modal ───────────────────────────────────── -->
+    @if (showStoryModal()) {
+      <div class="story-modal-overlay" (click)="closeStoryModal()">
+        <div class="story-modal" (click)="$event.stopPropagation()">
+          <div class="story-modal-header">
+            <span class="story-modal-title">📲 Story Preview</span>
+            <button class="story-modal-close" (click)="closeStoryModal()">✕</button>
+          </div>
+          <div class="story-modal-preview">
+            <!-- Live preview of the card (scaled down) -->
+            <div class="story-card-preview">
+              <div class="sc-bg"></div>
+              <div class="sc-header">
+                <span class="sc-logo">🏆 Predict The Champion</span>
+                <span class="sc-subtitle">FIFA World Cup 2026</span>
+              </div>
+              <div class="sc-champion">
+                <div class="sc-section-label">🥇 My Champion Pick</div>
+                @if (bracketService.champion) {
+                  <div class="sc-champ-card">
+                    <img [src]="bracketService.champion.flagUrl" class="sc-champ-flag">
+                    <span class="sc-champ-name">{{ bracketService.champion.name }}</span>
+                    <span class="sc-crown">👑</span>
+                  </div>
+                } @else {
+                  <div class="sc-champ-card sc-tbd">TBD</div>
+                }
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-label">🏆 Final</div>
+                <div class="sc-match">
+                  <div class="sc-team">
+                    @if (getNode(FINAL).home) {
+                      <img [src]="getNode(FINAL).home!.flagUrl" class="sc-flag">
+                      <span>{{ getNode(FINAL).home!.fifaCode }}</span>
+                    } @else { <span class="sc-tbd-sm">TBD</span> }
+                  </div>
+                  <span class="sc-vs">vs</span>
+                  <div class="sc-team">
+                    @if (getNode(FINAL).away) {
+                      <img [src]="getNode(FINAL).away!.flagUrl" class="sc-flag">
+                      <span>{{ getNode(FINAL).away!.fifaCode }}</span>
+                    } @else { <span class="sc-tbd-sm">TBD</span> }
+                  </div>
+                </div>
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-label">🎯 Semi Finals</div>
+                <div class="sc-sf-row">
+                  <div class="sc-match sc-match-sm">
+                    <div class="sc-team">
+                      @if (getNode(L_SF).home) { <img [src]="getNode(L_SF).home!.flagUrl" class="sc-flag"><span>{{ getNode(L_SF).home!.fifaCode }}</span> }
+                      @else { <span class="sc-tbd-sm">TBD</span> }
+                    </div>
+                    <span class="sc-vs">vs</span>
+                    <div class="sc-team">
+                      @if (getNode(L_SF).away) { <img [src]="getNode(L_SF).away!.flagUrl" class="sc-flag"><span>{{ getNode(L_SF).away!.fifaCode }}</span> }
+                      @else { <span class="sc-tbd-sm">TBD</span> }
+                    </div>
+                  </div>
+                  <div class="sc-match sc-match-sm">
+                    <div class="sc-team">
+                      @if (getNode(R_SF).home) { <img [src]="getNode(R_SF).home!.flagUrl" class="sc-flag"><span>{{ getNode(R_SF).home!.fifaCode }}</span> }
+                      @else { <span class="sc-tbd-sm">TBD</span> }
+                    </div>
+                    <span class="sc-vs">vs</span>
+                    <div class="sc-team">
+                      @if (getNode(R_SF).away) { <img [src]="getNode(R_SF).away!.flagUrl" class="sc-flag"><span>{{ getNode(R_SF).away!.fifaCode }}</span> }
+                      @else { <span class="sc-tbd-sm">TBD</span> }
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-label">⚡ Quarter Finals</div>
+                <div class="sc-qf-grid">
+                  @for (slot of [25, 26, 27, 28]; track slot) {
+                    <div class="sc-match sc-match-sm">
+                      <div class="sc-team">
+                        @if (getNode(slot).home) { <img [src]="getNode(slot).home!.flagUrl" class="sc-flag"><span>{{ getNode(slot).home!.fifaCode }}</span> }
+                        @else { <span class="sc-tbd-sm">TBD</span> }
+                      </div>
+                      <span class="sc-vs">vs</span>
+                      <div class="sc-team">
+                        @if (getNode(slot).away) { <img [src]="getNode(slot).away!.flagUrl" class="sc-flag"><span>{{ getNode(slot).away!.fifaCode }}</span> }
+                        @else { <span class="sc-tbd-sm">TBD</span> }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+              <div class="sc-url-bar">
+                <span class="sc-url-icon">🔗</span>
+                <span class="sc-url-text">predictthechampion.com</span>
+              </div>
+            </div>
+          </div>
+          <button class="story-download-btn" (click)="downloadStory()" [disabled]="exporting()">
+            {{ exporting() === 'story' ? '⏳ Downloading…' : '⬇️ Download Story Image' }}
+          </button>
+        </div>
+      </div>
+    }
+
     <!-- ── Hidden Story Card (9:16) ─────────────────────────────── -->
     <div class="story-card" #storyCard>
       <!-- Background gradient -->
@@ -332,9 +436,6 @@ const THIRD = 31;
       </div>
 
       <!-- Tier + Footer -->
-      <div class="sc-footer">
-        <span class="sc-tier">{{ bracketService.tier() }} Tier</span>
-      </div>
       <div class="sc-url-bar">
         <span class="sc-url-icon">🔗</span>
         <span class="sc-url-text">predictthechampion.com</span>
@@ -417,6 +518,59 @@ const THIRD = 31;
     .bv-story-btn { background: linear-gradient(135deg, #e91e63, #9c27b0); color: white; border-color: transparent; }
     .bv-story-btn:hover:not(:disabled) { background: linear-gradient(135deg, #c2185b, #7b1fa2); border-color: transparent; }
 
+    /* ── Story Preview Modal ────────────────────────────────────── */
+    .story-modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    .story-modal {
+      background: #1a1a2e; border-radius: 20px;
+      padding: 20px; width: min(380px, 100%);
+      display: flex; flex-direction: column; gap: 16px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .story-modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .story-modal-title { font-size: 0.95rem; font-weight: 700; color: white; }
+    .story-modal-close {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: none; background: rgba(255,255,255,0.1); color: white;
+      font-size: 0.8rem; cursor: pointer; transition: background 0.15s;
+    }
+    .story-modal-close:hover { background: rgba(255,255,255,0.2); }
+    .story-modal-preview {
+      display: flex; justify-content: center;
+      overflow: hidden; border-radius: 12px;
+    }
+    /* Scale down the story card for preview */
+    .story-card-preview {
+      width: 405px; height: 720px;
+      background: linear-gradient(160deg, #0d1b6e 0%, #1a237e 40%, #1b0a4e 100%);
+      border-radius: 20px;
+      display: flex; flex-direction: column;
+      padding: 32px 28px 24px;
+      box-sizing: border-box;
+      gap: 18px;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+      transform: scale(0.82);
+      transform-origin: top center;
+      margin-bottom: calc((720px * 0.82 - 720px));
+    }
+    .story-download-btn {
+      padding: 14px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, #e91e63, #9c27b0);
+      color: white; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; transition: opacity 0.15s;
+      width: 100%;
+    }
+    .story-download-btn:hover:not(:disabled) { opacity: 0.9; }
+    .story-download-btn:disabled { opacity: 0.5; cursor: default; }
+
     /* ── Story Card ──────────────────────────────────────────────── */
     .story-card {
       position: fixed;
@@ -494,6 +648,7 @@ const THIRD = 31;
       border: 1.5px solid rgba(255,215,0,0.4);
       border-radius: 30px;
       padding: 10px 20px;
+      margin-top: 16px;
     }
     .sc-url-icon { font-size: 1rem; }
     .sc-url-text { font-size: 1rem; font-weight: 800; color: #ffd700; letter-spacing: 0.03em; }
@@ -711,6 +866,7 @@ export class BracketViewComponent implements OnInit {
 
   loading   = signal(true);
   exporting = signal<'img' | 'pdf' | 'story' | null>(null);
+  showStoryModal = signal(false);
   linkCopied = signal(false);
 
   readonly L_R32_GROUPS = L_R32_GROUPS;
@@ -780,26 +936,34 @@ export class BracketViewComponent implements OnInit {
     } catch { /* ignore */ }
   }
 
-  async shareStory(): Promise<void> {
+  shareStory(): void {
+    this.showStoryModal.set(true);
+  }
+
+  closeStoryModal(): void {
+    if (this.exporting()) return;
+    this.showStoryModal.set(false);
+  }
+
+  async downloadStory(): Promise<void> {
     if (this.exporting()) return;
     this.exporting.set('story');
     const el = this.storyCardEl.nativeElement;
-    // Bring into viewport so html-to-image can render it
     el.style.position = 'fixed';
     el.style.left = '0';
     el.style.top = '0';
     el.style.zIndex = '99999';
     el.style.visibility = 'visible';
     try {
-      await new Promise(r => setTimeout(r, 100)); // let Angular render flags/images
+      await new Promise(r => setTimeout(r, 150));
       const dataUrl = await toPng(el, { cacheBust: true, pixelRatio: 3, width: 405, height: 720 });
       const link = document.createElement('a');
       link.download = 'my-bracket-story.png';
       link.href = dataUrl;
       link.click();
+      this.showStoryModal.set(false);
     } catch (e) { console.error(e); }
     finally {
-      // Hide it again
       el.style.position = 'fixed';
       el.style.left = '-9999px';
       el.style.top = '0';
