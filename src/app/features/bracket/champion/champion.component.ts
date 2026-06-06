@@ -60,16 +60,16 @@ import { BracketViewComponent } from '../../bracket-view/bracket-view.component'
         <span class="bracket-section-title">📊 Full Bracket</span>
         <div class="bracket-section-actions">
           <button class="bs-btn" (click)="bracketView.copyShareLink()" [class.copied]="bracketView.linkCopied()">
-            {{ bracketView.linkCopied() ? '✓ Copied!' : '🔗 Share' }}
+            {{ bracketView.linkCopied() ? '✓ Copied!' : '🔗 Share Link' }}
           </button>
           <button class="bs-btn bs-story-btn" (click)="bracketView.shareStory()" [disabled]="bracketView.exporting()">
-            {{ bracketView.exporting() === 'story' ? '⏳ Generating…' : '📲 Share Story' }}
+            {{ bracketView.exporting() === 'story' ? '⏳ Generating…' : '📸 Share as Story' }}
           </button>
           <button class="bs-btn" (click)="bracketView.downloadImage()" [disabled]="bracketView.exporting()">
-            {{ bracketView.exporting() === 'img' ? '⏳ Exporting…' : '🖼 Download Image' }}
+            {{ bracketView.exporting() === 'img' ? '⏳ Exporting…' : '⬇️ Bracket Image' }}
           </button>
           <button class="bs-btn" (click)="bracketView.downloadPdf()" [disabled]="bracketView.exporting()">
-            {{ bracketView.exporting() === 'pdf' ? '⏳ Exporting…' : '📄 Download PDF' }}
+            {{ bracketView.exporting() === 'pdf' ? '⏳ Exporting…' : '⬇️ Bracket PDF' }}
           </button>
         </div>
       </div>

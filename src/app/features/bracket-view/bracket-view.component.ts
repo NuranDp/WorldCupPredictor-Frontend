@@ -66,24 +66,26 @@ const THIRD = 31;
           </div>
           <div class="bv-actions">
             <button class="bv-action-btn" (click)="copyShareLink()" [class.copied]="linkCopied()">
-              {{ linkCopied() ? '✓ Copied!' : '🔗 Share' }}
+              {{ linkCopied() ? '✓ Copied!' : '🔗 Share Link' }}
             </button>
             <button class="bv-action-btn bv-story-btn" (click)="shareStory()" [disabled]="exporting()">
-              {{ exporting() === 'story' ? '⏳ Generating…' : '📲 Share Story' }}
+              {{ exporting() === 'story' ? '⏳ Generating…' : '📸 Share as Story' }}
             </button>
             <button class="bv-action-btn" (click)="downloadImage()" [disabled]="exporting()">
-              {{ exporting() === 'img' ? '⏳ Exporting…' : '🖼 Download Image' }}
+              {{ exporting() === 'img' ? '⏳ Exporting…' : '⬇️ Bracket Image' }}
             </button>
             <button class="bv-action-btn" (click)="downloadPdf()" [disabled]="exporting()">
-              {{ exporting() === 'pdf' ? '⏳ Exporting…' : '📄 Download PDF' }}
+              {{ exporting() === 'pdf' ? '⏳ Exporting…' : '⬇️ Bracket PDF' }}
             </button>
           </div>
         </div>
         }
 
         <!-- Bracket -->
+        <div class="bracket-capture" #bracketEl>
         <div class="bracket-scroll">
-          <div class="bracket-wrap" #bracketEl>
+          <div class="bracket-wrap">
+          <div class="bracket-inner">
 
             <!-- LEFT half: R32 → R16 → QF → SF (left to right) -->
             <div class="half half-left">
@@ -219,8 +221,14 @@ const THIRD = 31;
               </div>
 
             </div>
-          </div>
+          </div><!-- /bracket-inner -->
+          </div><!-- /bracket-wrap -->
+        </div><!-- /bracket-scroll -->
+        <!-- Watermark -->
+        <div class="bracket-watermark">
+          🏆 predictthechampion.com
         </div>
+        </div><!-- /bracket-capture -->
 
       </div>
     }
@@ -653,18 +661,36 @@ const THIRD = 31;
     .sc-url-icon { font-size: 1rem; }
     .sc-url-text { font-size: 1rem; font-weight: 800; color: #ffd700; letter-spacing: 0.03em; }
 
+    /* ── Capture wrapper ─────────────────────────────────────────── */
+    .bracket-capture { display: flex; flex-direction: column; }
+
     /* ── Scroll wrapper ──────────────────────────────────────────── */
-    .bracket-scroll { overflow-x: auto; padding-bottom: 16px; }
+    .bracket-scroll { overflow-x: auto; }
 
     /* ── Main bracket layout ─────────────────────────────────────── */
     .bracket-wrap {
       display: flex;
+      flex-direction: column;
       align-items: stretch;
       min-width: 1100px;
       background: white;
       border-radius: 12px;
       padding: 24px 8px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+
+    .bracket-inner {
+      display: flex; align-items: stretch; flex: 1;
+      padding-bottom: 24px;
+    }
+    .bracket-watermark {
+      text-align: center; padding: 14px 0;
+      font-size: 1rem; font-weight: 800;
+      color: white;
+      letter-spacing: 0.06em;
+      background-color: #1a237e;
+      border-radius: 12px;
+      margin-top: 8px;
     }
 
     /* ── Half (left / right) ─────────────────────────────────────── */
