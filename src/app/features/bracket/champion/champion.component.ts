@@ -23,7 +23,7 @@ import { BracketViewComponent } from '../../bracket-view/bracket-view.component'
         @if (champion(); as c) {
           <div class="champ-body">
             <div class="flag-wrap">
-              <img [src]="c.flagUrl" [alt]="c.name" class="champ-flag">
+              <img [src]="c.flagUrl.replace('w40', 'w320')" [alt]="c.name" class="champ-flag">
               <div class="flag-glow"></div>
             </div>
             <h2 class="champ-name">{{ c.name }}</h2>
