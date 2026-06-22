@@ -25,6 +25,15 @@ export interface AdminMatch {
   status: string;
 }
 
+export interface GiveawayEntry {
+  id: number;
+  userName: string;
+  homeScore: number;
+  awayScore: number;
+  submittedAt: string;
+  isCorrect: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private readonly base = `${environment.apiUrl}/admin`;
@@ -83,11 +92,15 @@ export class AdminService {
     return this.http.post<{ message: string }>(`${this.base}/giveaway/${id}/close`, {});
   }
 
-  drawGiveaway(id: number): Observable<{ winnerName: string; isLuckyDraw: boolean; message: string }> {
-    return this.http.post<{ winnerName: string; isLuckyDraw: boolean; message: string }>(`${this.base}/giveaway/${id}/draw`, {});
+  drawGiveaway(id: number, lucky = false): Observable<{ winnerName: string; isLuckyDraw: boolean; message: string }> {
+    return this.http.post<{ winnerName: string; isLuckyDraw: boolean; message: string }>(`${this.base}/giveaway/${id}/draw?lucky=${lucky}`, {});
   }
 
   deleteGiveaway(id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.base}/giveaway/${id}`);
+  }
+
+  getGiveawayEntries(id: number): Observable<GiveawayEntry[]> {
+    return this.http.get<GiveawayEntry[]>(`${this.base}/giveaway/${id}/entries`);
   }
 }
