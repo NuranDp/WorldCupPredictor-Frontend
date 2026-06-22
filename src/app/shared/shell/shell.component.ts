@@ -41,6 +41,10 @@ import { AuthService } from '../../core/services/auth.service';
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="17" cy="21" r="1"/><circle cx="9" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
           Groups
         </a>
+        <a routerLink="/giveaway"    routerLinkActive="drawer-link-active" class="drawer-link drawer-link-giveaway" (click)="closeDrawer()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+          Giveaway
+        </a>
         <a routerLink="/rules"       routerLinkActive="drawer-link-active" class="drawer-link" (click)="closeDrawer()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
           How to Play
@@ -94,6 +98,7 @@ import { AuthService } from '../../core/services/auth.service';
           <a routerLink="/bracket"     routerLinkActive="nav-active" class="nav-link">Bracket</a>
           <a routerLink="/leaderboard" routerLinkActive="nav-active" class="nav-link">Leaderboard</a>
           <a routerLink="/groups"      routerLinkActive="nav-active" class="nav-link">Groups</a>
+          <a routerLink="/giveaway"    routerLinkActive="nav-active" class="nav-link nav-giveaway">🎁 Giveaway</a>
           <a routerLink="/rules"       routerLinkActive="nav-active" class="nav-link">Rules</a>
           <a routerLink="/contact"     routerLinkActive="nav-active" class="nav-link">Contact</a>
           @if (auth.isAdmin()) {
@@ -200,6 +205,9 @@ import { AuthService } from '../../core/services/auth.service';
     .drawer-link-admin { color: #f9a825; }
     .drawer-link-admin:hover { background: rgba(249,168,37,0.12); color: #ffb300; }
     .drawer-link-admin.drawer-link-active { background: rgba(249,168,37,0.18); }
+    .drawer-link-giveaway { color: #e91e8c; }
+    .drawer-link-giveaway:hover { background: rgba(233,30,140,0.10); color: #f06292; }
+    .drawer-link-giveaway.drawer-link-active { background: rgba(233,30,140,0.15); }
 
     .drawer-footer {
       padding: 16px 20px 28px;
@@ -285,6 +293,9 @@ import { AuthService } from '../../core/services/auth.service';
     .nav-admin              { color: #f9a825 !important; }
     .nav-admin:hover        { background: rgba(249,168,37,0.14) !important; }
     .nav-admin.nav-active   { background: rgba(249,168,37,0.22) !important; }
+    .nav-giveaway           { color: #f06292 !important; }
+    .nav-giveaway:hover     { background: rgba(233,30,140,0.12) !important; }
+    .nav-giveaway.nav-active { background: rgba(233,30,140,0.18) !important; }
 
     /* Spacer */
     .flex-spacer { flex: 1 1 auto; min-width: 4px; }

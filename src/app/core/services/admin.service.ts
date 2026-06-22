@@ -35,8 +35,8 @@ export class AdminService {
     return this.http.post<{ message: string }>(`${this.base}/recalculate`, {});
   }
 
-  syncResults(): Observable<{ updated: number }> {
-    return this.http.post<{ updated: number }>(`${this.base}/sync-results`, {});
+  syncResults(days = 3): Observable<{ updated: number }> {
+    return this.http.post<{ updated: number }>(`${this.base}/sync-results?days=${days}`, {});
   }
 
   lockBrackets(): Observable<{ message: string }> {
@@ -59,11 +59,35 @@ export class AdminService {
     return this.http.get<any[]>(`${this.base}/matches`);
   }
 
+  getGroupStageMatches(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/group-matches`);
+  }
+
   getAdminGroups(): Observable<any[]> {
     return this.http.get<any[]>(`${this.base}/groups`);
   }
 
   getBest3rdQualifiers(): Observable<{ teamIds: number[] }> {
     return this.http.get<{ teamIds: number[] }>(`${this.base}/best3rd`);
+  }
+
+  getGiveaway(): Observable<any> {
+    return this.http.get<any>(`${this.base}/giveaway`);
+  }
+
+  createGiveaway(matchId: number, prize: string): Observable<{ id: number }> {
+    return this.http.post<{ id: number }>(`${this.base}/giveaway`, { matchId, prize });
+  }
+
+  closeGiveaway(id: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.base}/giveaway/${id}/close`, {});
+  }
+
+  drawGiveaway(id: number): Observable<{ winnerName: string; isLuckyDraw: boolean; message: string }> {
+    return this.http.post<{ winnerName: string; isLuckyDraw: boolean; message: string }>(`${this.base}/giveaway/${id}/draw`, {});
+  }
+
+  deleteGiveaway(id: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.base}/giveaway/${id}`);
   }
 }

@@ -64,6 +64,11 @@ export const routes: Routes = [
           import('./features/groups/groups.component').then(m => m.GroupsComponent),
       },
       {
+        path: 'giveaway',
+        loadComponent: () =>
+          import('./features/giveaway/giveaway.component').then(m => m.GiveawayComponent),
+      },
+      {
         path: 'admin',
         canActivate: [adminGuard],
         loadComponent: () =>
