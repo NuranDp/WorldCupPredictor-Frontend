@@ -13,8 +13,9 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
-import { AdminService } from '../../core/services/admin.service';
+import { AdminService, GiveawayEntry } from '../../core/services/admin.service';
 
 interface AdminGiveaway {
   id: number;
@@ -87,7 +88,7 @@ interface GiveawayMatchOption {
     FormsModule,
     MatCardModule, MatButtonModule, MatSelectModule, MatFormFieldModule,
     MatInputModule, MatChipsModule, MatIconModule, MatProgressSpinnerModule,
-    MatDividerModule, MatBadgeModule, MatTabsModule,
+    MatDividerModule, MatBadgeModule, MatTabsModule, MatTooltipModule,
   ],
   template: `
     <div class="admin-header">
@@ -480,6 +481,38 @@ interface GiveawayMatchOption {
                       </div>
                     }
                   </div>
+
+                  @if (giveawayEntries().length > 0) {
+                    <div class="gw-entries-section">
+                      <div class="gw-entries-header">
+                        Predictions ({{ giveawayEntries().length }})
+                      </div>
+                      <div class="gw-entries-table-wrap">
+                        <table class="gw-entries-table">
+                          <thead>
+                            <tr>
+                              <th>#</th>
+                              <th>User</th>
+                              <th>Prediction</th>
+                              <th>Submitted</th>
+                              <th></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (e of giveawayEntries(); track e.id; let i = $index) {
+                              <tr [class.gw-entry-correct]="e.isCorrect">
+                                <td class="gw-entry-num">{{ i + 1 }}</td>
+                                <td class="gw-entry-user">{{ e.userName }}</td>
+                                <td class="gw-entry-score">{{ e.homeScore }} – {{ e.awayScore }}</td>
+                                <td class="gw-entry-time">{{ formatEntryTime(e.submittedAt) }}</td>
+                                <td>@if (e.isCorrect) { <span class="gw-correct-badge">✓</span> }</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  }
                 </mat-card-content>
                 <mat-card-actions>
                   @if (giveaway()!.status === 'Open') {
@@ -491,9 +524,16 @@ interface GiveawayMatchOption {
                   }
                   @if (giveaway()!.status === 'Closed') {
                     <button mat-raised-button color="primary"
-                            [disabled]="busy['gw_draw'] || giveaway()!.entryCount < 100"
-                            (click)="drawGiveaway()">
-                      {{ busy['gw_draw'] ? 'Drawing…' : giveaway()!.entryCount < 100 ? '🎲 Draw (' + giveaway()!.entryCount + '/100)' : '🎲 Draw Winner' }}
+                            [disabled]="busy['gw_draw'] || busy['gw_lucky'] || giveaway()!.match.status !== 'Completed'"
+                            (click)="drawGiveaway()"
+                            matTooltip="Draw from correct predictions only (match must be FT)">
+                      {{ busy['gw_draw'] ? 'Drawing…' : '🎯 Draw from Correct Picks' }}
+                    </button>
+                    <button mat-stroked-button color="primary"
+                            [disabled]="busy['gw_draw'] || busy['gw_lucky'] || giveaway()!.match.status !== 'Completed'"
+                            (click)="luckyDraw()"
+                            matTooltip="Pick a random winner from all entries">
+                      {{ busy['gw_lucky'] ? 'Drawing…' : '🍀 Lucky Draw' }}
                     </button>
                   }
                   <button mat-stroked-button color="warn"
@@ -673,6 +713,19 @@ interface GiveawayMatchOption {
     .giveaway-manage-card mat-card-actions {
       display: flex; gap: 8px; padding: 8px 16px 16px; align-items: center;
     }
+    .gw-entries-section { margin-top: 16px; border-top: 1px solid #eee; padding-top: 12px; }
+    .gw-entries-header { font-size: 0.82rem; font-weight: 700; color: #666; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .gw-entries-table-wrap { max-height: 320px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; }
+    .gw-entries-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .gw-entries-table th { background: #f9f9f9; padding: 6px 10px; text-align: left; font-weight: 600; color: #888; border-bottom: 1px solid #eee; position: sticky; top: 0; }
+    .gw-entries-table td { padding: 7px 10px; border-bottom: 1px solid #f5f5f5; }
+    .gw-entries-table tr:last-child td { border-bottom: none; }
+    .gw-entry-correct { background: #f1f8e9; }
+    .gw-entry-num { color: #bbb; width: 32px; }
+    .gw-entry-user { font-weight: 600; color: #333; }
+    .gw-entry-score { font-weight: 700; color: #1565c0; font-size: 0.9rem; }
+    .gw-entry-time { color: #aaa; font-size: 0.78rem; }
+    .gw-correct-badge { background: #43a047; color: white; font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
   `],
 })
 export class AdminComponent implements OnInit {
@@ -685,6 +738,8 @@ export class AdminComponent implements OnInit {
   groupStageMatches = signal<GroupStageMatch[]>([]);
   selectedBest3rd = signal<number[]>([]);
   giveaway = signal<AdminGiveaway | null>(null);
+  giveawayEntries = signal<GiveawayEntry[]>([]);
+  showEntries = false;
 
   newGiveawayMatchId: number | null = null;
   newGiveawayPrize = '';
@@ -754,6 +809,7 @@ export class AdminComponent implements OnInit {
         this.groupStageMatches.set(groupStageMatches);
         this.selectedBest3rd.set(best3rd.teamIds ?? []);
         this.giveaway.set(giveaway);
+        if (giveaway) this.loadEntries(giveaway.id);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
@@ -937,7 +993,7 @@ export class AdminComponent implements OnInit {
     const g = this.giveaway();
     if (!g) return;
     this.busy['gw_draw'] = true;
-    this.adminService.drawGiveaway(g.id).subscribe({
+    this.adminService.drawGiveaway(g.id, false).subscribe({
       next: (r) => {
         this.busy['gw_draw'] = false;
         this.snack.open(r.message, undefined, { duration: 6000 });
@@ -946,6 +1002,23 @@ export class AdminComponent implements OnInit {
       error: (e) => {
         this.busy['gw_draw'] = false;
         this.snack.open(e?.error?.message ?? 'Draw failed', 'OK', { duration: 5000 });
+      },
+    });
+  }
+
+  luckyDraw(): void {
+    const g = this.giveaway();
+    if (!g || !confirm('Pick a random lucky winner from ALL entries?')) return;
+    this.busy['gw_lucky'] = true;
+    this.adminService.drawGiveaway(g.id, true).subscribe({
+      next: (r) => {
+        this.busy['gw_lucky'] = false;
+        this.snack.open(r.message, undefined, { duration: 6000 });
+        this.refreshGiveaway();
+      },
+      error: (e) => {
+        this.busy['gw_lucky'] = false;
+        this.snack.open(e?.error?.message ?? 'Lucky draw failed', 'OK', { duration: 5000 });
       },
     });
   }
@@ -968,7 +1041,24 @@ export class AdminComponent implements OnInit {
   }
 
   private refreshGiveaway(): void {
-    this.adminService.getGiveaway().subscribe({ next: (g) => this.giveaway.set(g) });
+    this.adminService.getGiveaway().subscribe({
+      next: (g) => {
+        this.giveaway.set(g);
+        this.showEntries = false;
+        this.giveawayEntries.set([]);
+        if (g) this.loadEntries(g.id);
+      },
+    });
+  }
+
+  loadEntries(id: number): void {
+    this.adminService.getGiveawayEntries(id).subscribe({
+      next: (entries) => this.giveawayEntries.set(entries),
+    });
+  }
+
+  formatEntryTime(dateStr: string): string {
+    return new Date(dateStr).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 
   saveMatchResult(m: AdminMatch): void {
