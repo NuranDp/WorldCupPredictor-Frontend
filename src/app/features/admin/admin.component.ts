@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
@@ -14,6 +15,24 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatTabsModule } from '@angular/material/tabs';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../core/services/admin.service';
+
+interface AdminGiveaway {
+  id: number;
+  prize: string;
+  status: string;
+  entryCount: number;
+  isLuckyDraw: boolean;
+  match: {
+    id: number;
+    homeTeam: string | null;
+    homeTeamFlag: string | null;
+    awayTeam: string | null;
+    awayTeamFlag: string | null;
+    matchDate: string | null;
+    status: string;
+  };
+  winnerName: string | null;
+}
 
 interface AdminGroup {
   id: number;
@@ -35,6 +54,30 @@ interface AdminMatch {
   homeScore: number | null;
   awayScore: number | null;
   status: string;
+}
+
+interface GroupStageMatch {
+  id: number;
+  groupName: string;
+  homeTeamId: number | null;
+  homeTeamName: string;
+  homeTeamFlag: string;
+  awayTeamId: number | null;
+  awayTeamName: string;
+  awayTeamFlag: string;
+  matchDate: string | null;
+  status: string;
+  homeScore: number | null;
+  awayScore: number | null;
+}
+
+interface GiveawayMatchOption {
+  id: number;
+  label: string;
+  homeTeamId: number | null;
+  homeTeamName: string | null;
+  awayTeamId: number | null;
+  awayTeamName: string | null;
 }
 
 @Component({
@@ -69,9 +112,15 @@ interface AdminMatch {
                 </mat-card-header>
                 <mat-card-actions>
                   <button mat-raised-button color="primary"
-                          [disabled]="busy['sync']"
+                          [disabled]="busy['sync'] || busy['syncAll']"
                           (click)="syncEspn()">
-                    {{ busy['sync'] ? 'Syncing…' : 'Sync Now' }}
+                    {{ busy['sync'] ? 'Syncing…' : 'Sync Last 3 Days' }}
+                  </button>
+                  <button mat-stroked-button color="primary"
+                          [disabled]="busy['sync'] || busy['syncAll']"
+                          (click)="syncEspnAll()"
+                          style="margin-left:8px">
+                    {{ busy['syncAll'] ? 'Syncing…' : 'Sync Full History' }}
                   </button>
                 </mat-card-actions>
               </mat-card>
@@ -308,6 +357,158 @@ interface AdminMatch {
           </div>
         </mat-tab>
 
+        <!-- ═══ TAB 5: GROUP STAGE SCHEDULE ════════════════════════════════════ -->
+        <mat-tab label="Group Schedule">
+          <div class="tab-content">
+            <p class="section-hint">All 72 group stage matches — kickoff times shown in your local timezone.</p>
+
+            @for (groupName of groupOrder; track groupName) {
+              @if ((groupStageByGroup()[groupName] || []).length > 0) {
+                <div class="gs-group-section">
+                  <div class="gs-group-header">Group {{ groupName }}</div>
+                  <div class="gs-match-list">
+                    @for (m of groupStageByGroup()[groupName]; track m.id) {
+                      <div class="gs-match-row" [class.gs-completed]="m.status === 'Completed'">
+                        <div class="gs-time">
+                          @if (m.matchDate) {
+                            <span class="gs-date">{{ formatMatchDate(m.matchDate) }}</span>
+                            <span class="gs-kickoff">{{ formatMatchTime(m.matchDate) }}</span>
+                          } @else {
+                            <span class="gs-tbd">TBD</span>
+                          }
+                        </div>
+                        <div class="gs-teams">
+                          <span class="gs-team">
+                            <img [src]="m.homeTeamFlag" class="gs-flag" />
+                            {{ m.homeTeamName }}
+                          </span>
+                          <span class="gs-score">
+                            @if (m.status === 'Completed') {
+                              <strong>{{ m.homeScore }} – {{ m.awayScore }}</strong>
+                            } @else {
+                              <span class="gs-vs">vs</span>
+                            }
+                          </span>
+                          <span class="gs-team gs-team-away">
+                            {{ m.awayTeamName }}
+                            <img [src]="m.awayTeamFlag" class="gs-flag" />
+                          </span>
+                        </div>
+                        <div class="gs-status">
+                          @if (m.status === 'Completed') {
+                            <span class="gs-badge gs-badge-done">✓ FT</span>
+                          } @else if (isMatchSoon(m.matchDate)) {
+                            <span class="gs-badge gs-badge-soon">Soon</span>
+                          } @else {
+                            <span class="gs-badge gs-badge-sched">Scheduled</span>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </mat-tab>
+
+        <!-- ═══ TAB 6: GIVEAWAY ══════════════════════════════════════════════ -->
+        <mat-tab label="🎁 Giveaway">
+          <div class="tab-content">
+
+            @if (!giveaway()) {
+              <!-- Create form -->
+              <p class="section-hint">No active giveaway. Create one for an upcoming match.</p>
+              <mat-card class="giveaway-create-card">
+                <mat-card-header>
+                  <mat-card-title>Create Giveaway</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="giveaway-form">
+                    <mat-form-field appearance="outline" class="gw-field">
+                      <mat-label>Match</mat-label>
+                      <mat-select [(ngModel)]="newGiveawayMatchId">
+                        @for (m of giveawayMatches(); track m.id) {
+                          <mat-option [value]="m.id">{{ m.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="gw-field">
+                      <mat-label>Prize description</mat-label>
+                      <input matInput [(ngModel)]="newGiveawayPrize" placeholder="e.g. Nike jersey + signed ball" />
+                    </mat-form-field>
+                  </div>
+                </mat-card-content>
+                <mat-card-actions>
+                  <button mat-raised-button color="primary"
+                          [disabled]="!newGiveawayMatchId || !newGiveawayPrize || busy['gw_create']"
+                          (click)="createGiveaway()">
+                    {{ busy['gw_create'] ? 'Creating…' : 'Create Giveaway' }}
+                  </button>
+                </mat-card-actions>
+              </mat-card>
+            } @else {
+              <!-- Active giveaway management -->
+              <mat-card class="giveaway-manage-card">
+                <mat-card-header>
+                  <mat-card-title>
+                    Active Giveaway
+                    <span class="gw-status-badge" [class]="'gw-status-' + giveaway()!.status.toLowerCase()">
+                      {{ giveaway()!.status }}
+                    </span>
+                  </mat-card-title>
+                  <mat-card-subtitle>
+                    {{ giveaway()!.match.homeTeam ?? 'TBD' }} vs {{ giveaway()!.match.awayTeam ?? 'TBD' }}
+                  </mat-card-subtitle>
+
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="gw-info-rows">
+                    <div class="gw-info-row">
+                      <span class="gw-label">Prize</span>
+                      <span class="gw-value">{{ giveaway()!.prize }}</span>
+                    </div>
+                    <div class="gw-info-row">
+                      <span class="gw-label">Entries</span>
+                      <span class="gw-value">{{ giveaway()!.entryCount }}</span>
+                    </div>
+                    @if (giveaway()!.winnerName) {
+                      <div class="gw-winner-chip">
+                        🏆 Winner: <strong>{{ giveaway()!.winnerName }}</strong>
+                        @if (giveaway()!.isLuckyDraw) { <span class="lucky-tag">Lucky Draw</span> }
+                      </div>
+                    }
+                  </div>
+                </mat-card-content>
+                <mat-card-actions>
+                  @if (giveaway()!.status === 'Open') {
+                    <button mat-raised-button color="warn"
+                            [disabled]="busy['gw_close']"
+                            (click)="closeGiveaway()">
+                      {{ busy['gw_close'] ? 'Closing…' : 'Close Entries' }}
+                    </button>
+                  }
+                  @if (giveaway()!.status === 'Closed') {
+                    <button mat-raised-button color="primary"
+                            [disabled]="busy['gw_draw'] || giveaway()!.entryCount < 100"
+                            (click)="drawGiveaway()">
+                      {{ busy['gw_draw'] ? 'Drawing…' : giveaway()!.entryCount < 100 ? '🎲 Draw (' + giveaway()!.entryCount + '/100)' : '🎲 Draw Winner' }}
+                    </button>
+                  }
+                  <button mat-stroked-button color="warn"
+                          [disabled]="busy['gw_delete']"
+                          (click)="deleteGiveaway()"
+                          style="margin-left: auto">
+                    {{ busy['gw_delete'] ? 'Deleting…' : 'Delete' }}
+                  </button>
+                </mat-card-actions>
+              </mat-card>
+            }
+
+          </div>
+        </mat-tab>
+
       </mat-tab-group>
     }
   `,
@@ -407,6 +608,71 @@ interface AdminMatch {
     .winner-select { flex: 1; margin-bottom: -1.25em; }
     .no-matches { text-align: center; padding: 40px; opacity: 0.5; }
     .admin-tabs { margin-top: 0; }
+
+    /* Group Schedule */
+    .gs-group-section { margin-bottom: 24px; }
+    .gs-group-header {
+      font-size: 0.95rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: #6a1b9a;
+      border-bottom: 2px solid #6a1b9a;
+      padding-bottom: 5px; margin-bottom: 8px;
+    }
+    .gs-match-list { display: flex; flex-direction: column; gap: 4px; }
+    .gs-match-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 8px 12px; border-radius: 6px;
+      background: #f9f9f9; border: 1px solid #eee;
+      font-size: 0.85rem;
+    }
+    .gs-match-row.gs-completed { background: #f1f8e9; border-color: #c8e6c9; }
+    .gs-time { width: 110px; flex-shrink: 0; }
+    .gs-date { display: block; font-size: 0.75rem; opacity: 0.6; }
+    .gs-kickoff { font-weight: 600; font-size: 0.85rem; }
+    .gs-tbd { opacity: 0.4; font-style: italic; }
+    .gs-teams { flex: 1; display: flex; align-items: center; gap: 8px; }
+    .gs-team { display: flex; align-items: center; gap: 5px; flex: 1; }
+    .gs-team-away { justify-content: flex-end; flex-direction: row-reverse; }
+    .gs-flag { width: 22px; height: 14px; border-radius: 2px; object-fit: cover; border: 1px solid #ddd; }
+    .gs-score { width: 60px; text-align: center; flex-shrink: 0; font-size: 1rem; }
+    .gs-vs { opacity: 0.35; font-size: 0.75rem; }
+    .gs-status { width: 80px; text-align: right; flex-shrink: 0; }
+    .gs-badge {
+      font-size: 0.7rem; padding: 2px 7px; border-radius: 10px;
+      font-weight: 600; display: inline-block;
+    }
+    .gs-badge-done { background: #c8e6c9; color: #2e7d32; }
+    .gs-badge-soon { background: #fff3e0; color: #e65100; }
+    .gs-badge-sched { background: #e3f2fd; color: #1565c0; }
+
+    /* Giveaway tab */
+    .giveaway-create-card, .giveaway-manage-card { max-width: 520px; }
+    .giveaway-form { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; }
+    .gw-field { width: 100%; }
+    .gw-status-badge {
+      font-size: 0.72rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 10px;
+      margin-left: 8px; vertical-align: middle;
+    }
+    .gw-status-open   { background: #e8f5e9; color: #2e7d32; }
+    .gw-status-closed { background: #fce4ec; color: #c62828; }
+    .gw-status-drawn  { background: #e3f2fd; color: #1565c0; }
+    .gw-info-rows { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; }
+    .gw-info-row { display: flex; gap: 12px; align-items: center; }
+    .gw-label { width: 60px; font-size: 0.82rem; opacity: 0.6; }
+    .gw-value { font-weight: 600; }
+    .gw-winner-chip {
+      background: #fff8e1; border: 1px solid #ffe082;
+      border-radius: 8px; padding: 8px 12px;
+      font-size: 0.9rem; margin-top: 4px;
+    }
+    .lucky-tag {
+      display: inline-block; font-size: 0.7rem; font-weight: 700;
+      background: #e8f5e9; color: #2e7d32;
+      padding: 1px 6px; border-radius: 8px; margin-left: 6px;
+    }
+    .giveaway-manage-card mat-card-actions {
+      display: flex; gap: 8px; padding: 8px 16px 16px; align-items: center;
+    }
   `],
 })
 export class AdminComponent implements OnInit {
@@ -416,11 +682,41 @@ export class AdminComponent implements OnInit {
   loading = signal(true);
   groups = signal<AdminGroup[]>([]);
   matches = signal<AdminMatch[]>([]);
+  groupStageMatches = signal<GroupStageMatch[]>([]);
   selectedBest3rd = signal<number[]>([]);
+  giveaway = signal<AdminGiveaway | null>(null);
+
+  newGiveawayMatchId: number | null = null;
+  newGiveawayPrize = '';
 
   busy: Record<string, boolean> = {};
 
   readonly roundOrder = ['RoundOf32', 'RoundOf16', 'QuarterFinal', 'SemiFinal', 'ThirdPlace', 'Final'];
+  readonly groupOrder = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+
+  giveawayMatches = computed((): GiveawayMatchOption[] => {
+    const groupOptions = this.groupStageMatches()
+      .filter(m => m.status !== 'Completed')
+      .map(m => ({
+        id: m.id,
+        label: `${m.homeTeamName} vs ${m.awayTeamName} (Group ${m.groupName})`,
+        homeTeamId: m.homeTeamId,
+        homeTeamName: m.homeTeamName,
+        awayTeamId: m.awayTeamId,
+        awayTeamName: m.awayTeamName,
+      }));
+    const knockoutOptions = this.matches()
+      .filter(m => m.status !== 'Completed')
+      .map(m => ({
+        id: m.id,
+        label: `${m.homeTeamName ?? 'TBD'} vs ${m.awayTeamName ?? 'TBD'} (${this.roundLabel(m.round)})`,
+        homeTeamId: m.homeTeamId,
+        homeTeamName: m.homeTeamName,
+        awayTeamId: m.awayTeamId,
+        awayTeamName: m.awayTeamName,
+      }));
+    return [...groupOptions, ...knockoutOptions];
+  });
 
   matchesByRound = computed(() => {
     const result: Partial<Record<string, AdminMatch[]>> = {};
@@ -435,20 +731,49 @@ export class AdminComponent implements OnInit {
     this.groups().flatMap(g => g.teams)
   );
 
+  groupStageByGroup = computed(() => {
+    const result: Record<string, GroupStageMatch[]> = {};
+    for (const m of this.groupStageMatches()) {
+      if (!result[m.groupName]) result[m.groupName] = [];
+      result[m.groupName].push(m);
+    }
+    return result;
+  });
+
   ngOnInit(): void {
     forkJoin({
       groups: this.adminService.getAdminGroups(),
       matches: this.adminService.getAdminMatches(),
+      groupStageMatches: this.adminService.getGroupStageMatches(),
       best3rd: this.adminService.getBest3rdQualifiers(),
+      giveaway: this.adminService.getGiveaway().pipe(catchError(() => of(null))),
     }).subscribe({
-      next: ({ groups, matches, best3rd }) => {
+      next: ({ groups, matches, groupStageMatches, best3rd, giveaway }) => {
         this.groups.set(groups);
         this.matches.set(matches);
+        this.groupStageMatches.set(groupStageMatches);
         this.selectedBest3rd.set(best3rd.teamIds ?? []);
+        this.giveaway.set(giveaway);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  formatMatchDate(dateStr: string): string {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  formatMatchTime(dateStr: string): string {
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  }
+
+  isMatchSoon(dateStr: string | null): boolean {
+    if (!dateStr) return false;
+    const diff = new Date(dateStr).getTime() - Date.now();
+    return diff > 0 && diff < 2 * 60 * 60 * 1000;
   }
 
   roundLabel(round: string): string {
@@ -486,13 +811,27 @@ export class AdminComponent implements OnInit {
 
   syncEspn(): void {
     this.busy['sync'] = true;
-    this.adminService.syncResults().subscribe({
+    this.adminService.syncResults(3).subscribe({
       next: (r) => {
         this.busy['sync'] = false;
         this.snack.open(`ESPN sync complete — ${r.updated} match(es) updated`, undefined, { duration: 4000 });
       },
       error: (e) => {
         this.busy['sync'] = false;
+        this.snack.open(e?.error?.message ?? 'Sync failed', 'OK', { duration: 5000 });
+      },
+    });
+  }
+
+  syncEspnAll(): void {
+    this.busy['syncAll'] = true;
+    this.adminService.syncResults(45).subscribe({
+      next: (r) => {
+        this.busy['syncAll'] = false;
+        this.snack.open(`Full history sync complete — ${r.updated} match(es) updated`, undefined, { duration: 5000 });
+      },
+      error: (e) => {
+        this.busy['syncAll'] = false;
         this.snack.open(e?.error?.message ?? 'Sync failed', 'OK', { duration: 5000 });
       },
     });
@@ -557,6 +896,79 @@ export class AdminComponent implements OnInit {
         this.snack.open(e?.error?.message ?? 'Save failed', 'OK', { duration: 5000 });
       },
     });
+  }
+
+  createGiveaway(): void {
+    if (!this.newGiveawayMatchId || !this.newGiveawayPrize) return;
+    this.busy['gw_create'] = true;
+    this.adminService.createGiveaway(this.newGiveawayMatchId, this.newGiveawayPrize).subscribe({
+      next: () => {
+        this.busy['gw_create'] = false;
+        this.newGiveawayMatchId = null;
+        this.newGiveawayPrize = '';
+        this.snack.open('Giveaway created!', undefined, { duration: 3000 });
+        this.refreshGiveaway();
+      },
+      error: (e) => {
+        this.busy['gw_create'] = false;
+        this.snack.open(e?.error?.message ?? 'Failed to create giveaway', 'OK', { duration: 5000 });
+      },
+    });
+  }
+
+  closeGiveaway(): void {
+    const g = this.giveaway();
+    if (!g) return;
+    this.busy['gw_close'] = true;
+    this.adminService.closeGiveaway(g.id).subscribe({
+      next: () => {
+        this.busy['gw_close'] = false;
+        this.snack.open('Entries closed.', undefined, { duration: 3000 });
+        this.refreshGiveaway();
+      },
+      error: (e) => {
+        this.busy['gw_close'] = false;
+        this.snack.open(e?.error?.message ?? 'Failed to close giveaway', 'OK', { duration: 5000 });
+      },
+    });
+  }
+
+  drawGiveaway(): void {
+    const g = this.giveaway();
+    if (!g) return;
+    this.busy['gw_draw'] = true;
+    this.adminService.drawGiveaway(g.id).subscribe({
+      next: (r) => {
+        this.busy['gw_draw'] = false;
+        this.snack.open(r.message, undefined, { duration: 6000 });
+        this.refreshGiveaway();
+      },
+      error: (e) => {
+        this.busy['gw_draw'] = false;
+        this.snack.open(e?.error?.message ?? 'Draw failed', 'OK', { duration: 5000 });
+      },
+    });
+  }
+
+  deleteGiveaway(): void {
+    const g = this.giveaway();
+    if (!g || !confirm('Delete this giveaway and all its entries?')) return;
+    this.busy['gw_delete'] = true;
+    this.adminService.deleteGiveaway(g.id).subscribe({
+      next: () => {
+        this.busy['gw_delete'] = false;
+        this.giveaway.set(null);
+        this.snack.open('Giveaway deleted.', undefined, { duration: 3000 });
+      },
+      error: (e) => {
+        this.busy['gw_delete'] = false;
+        this.snack.open(e?.error?.message ?? 'Delete failed', 'OK', { duration: 5000 });
+      },
+    });
+  }
+
+  private refreshGiveaway(): void {
+    this.adminService.getGiveaway().subscribe({ next: (g) => this.giveaway.set(g) });
   }
 
   saveMatchResult(m: AdminMatch): void {

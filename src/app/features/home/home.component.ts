@@ -3,6 +3,7 @@ import { RouterLink, Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { SeoService } from '../../core/services/seo.service';
+import { GiveawayService, GiveawayDto } from '../../core/services/giveaway.service';
 
 interface TimeLeft {
   days: number; hours: number; minutes: number; seconds: number; locked: boolean;
@@ -232,6 +233,38 @@ const HOW_STEPS = [
         </div>
       </div>
     </section>
+
+    <!-- ── Giveaway Banner ───────────────────────────────────────── -->
+    @if (giveaway()) {
+      <section class="giveaway-banner-section">
+        @if (giveaway()!.status === 'Drawn') {
+          <!-- Winner announced -->
+          <div class="gw-banner gw-banner-winner">
+            <div class="gw-banner-left">
+              <span class="gw-tag">🏆 Giveaway Result</span>
+              <div class="gw-winner-announce">
+                <span class="gw-winner-label">Winner:</span>
+                <span class="gw-winner-name">{{ giveaway()!.winner?.name }}</span>
+              </div>
+              <div class="gw-prize-text">Prize: <strong>{{ giveaway()!.prize }}</strong></div>
+            </div>
+            <a routerLink="/giveaway" class="gw-banner-btn">View Details →</a>
+          </div>
+        } @else {
+          <!-- Active giveaway -->
+          <div class="gw-banner gw-banner-active">
+            <div class="gw-banner-left">
+              <span class="gw-tag gw-tag-live">🎁 Giveaway — {{ giveaway()!.status === 'Open' ? 'Open Now!' : 'Entries Closed' }}</span>
+              <div class="gw-match-line">
+                {{ giveaway()!.match.homeTeam ?? 'TBD' }} vs {{ giveaway()!.match.awayTeam ?? 'TBD' }}
+              </div>
+              <div class="gw-prize-text">Prize: <strong>{{ giveaway()!.prize }}</strong> · {{ giveaway()!.entryCount }} entries</div>
+            </div>
+            <a routerLink="/giveaway" class="gw-banner-btn">{{ giveaway()!.status === 'Open' ? 'Enter Now →' : 'View Giveaway →' }}</a>
+          </div>
+        }
+      </section>
+    }
 
     <!-- ── Prizes ─────────────────────────────────────────────────── -->
     <section class="prizes-section">
@@ -770,6 +803,45 @@ const HOW_STEPS = [
         animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
       }
     }
+
+    /* ── Giveaway banner ────────────────────────────────────────── */
+    .giveaway-banner-section { padding: 0 16px; margin-bottom: -8px; }
+    .gw-banner {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; padding: 16px 20px; border-radius: 14px;
+      flex-wrap: wrap;
+    }
+    .gw-banner-active {
+      background: linear-gradient(135deg, #1a237e 0%, #6a1b9a 100%);
+      box-shadow: 0 4px 20px rgba(106,27,154,0.35);
+    }
+    .gw-banner-winner {
+      background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+      box-shadow: 0 4px 20px rgba(27,94,32,0.35);
+    }
+    .gw-banner-left { display: flex; flex-direction: column; gap: 4px; }
+    .gw-tag {
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: rgba(255,255,255,0.7);
+    }
+    .gw-tag-live { color: #f48fb1; }
+    .gw-match-line { color: white; font-weight: 700; font-size: 1.05rem; }
+    .gw-winner-announce { display: flex; align-items: center; gap: 8px; }
+    .gw-winner-label { color: rgba(255,255,255,0.7); font-size: 0.9rem; }
+    .gw-winner-name { color: #f9a825; font-weight: 800; font-size: 1.2rem; }
+    .gw-prize-text { color: rgba(255,255,255,0.75); font-size: 0.85rem; }
+    .gw-prize-text strong { color: white; }
+    .gw-banner-btn {
+      flex-shrink: 0;
+      display: inline-block; padding: 10px 20px;
+      background: rgba(255,255,255,0.15);
+      color: white; text-decoration: none;
+      border-radius: 8px; font-weight: 700; font-size: 0.9rem;
+      border: 1px solid rgba(255,255,255,0.25);
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .gw-banner-btn:hover { background: rgba(255,255,255,0.25); }
 
     /* ── Prizes section ─────────────────────────────────────────── */
     .prizes-section {
@@ -1313,6 +1385,9 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly seo = inject(SeoService);
+  private readonly giveawayService = inject(GiveawayService);
+
+  giveaway = signal<GiveawayDto | null>(null);
 
   @ViewChild('slotReelHero')   slotReelHeroRef!:   ElementRef<HTMLDivElement>;
   @ViewChild('slotReelMobile') slotReelMobileRef!:  ElementRef<HTMLDivElement>;
@@ -1377,6 +1452,10 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       this.tick.set(true);
       setTimeout(() => this.tick.set(false), 180);
       this.tickClock();
+    });
+    this.giveawayService.getActive().subscribe({
+      next: (g) => this.giveaway.set(g),
+      error: () => {},
     });
   }
 
