@@ -111,4 +111,8 @@ export class AdminService {
   getGiveawayEntries(id: number): Observable<GiveawayEntry[]> {
     return this.http.get<GiveawayEntry[]>(`${this.base}/giveaway/${id}/entries`);
   }
+
+  notifyGiveawayUsers(id: number): Observable<{ sent: number; message: string }> {
+    return this.http.post<{ sent: number; message: string }>(`${this.base}/giveaway/${id}/notify`, {});
+  }
 }

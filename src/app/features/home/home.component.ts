@@ -1454,7 +1454,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       this.tickClock();
     });
     this.giveawayService.getActive().subscribe({
-      next: (g) => this.giveaway.set(g),
+      next: (list) => this.giveaway.set(list?.[0] ?? null),
       error: () => {},
     });
   }

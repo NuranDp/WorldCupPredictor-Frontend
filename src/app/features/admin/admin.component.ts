@@ -493,18 +493,33 @@ interface GiveawayMatchOption {
                     }
 
                     <mat-card-actions>
-                      <button [mat-stroked-button]="!g.isActive" [mat-raised-button]="g.isActive" [color]="g.isActive ? 'primary' : ''"
-                              [disabled]="busy['gw_toggle_' + g.id]"
-                              (click)="toggleGiveawayActive(g.id)"
-                              matTooltip="Toggle visibility on public Giveaway page">
-                        {{ busy['gw_toggle_' + g.id] ? (g.isActive ? 'Deactivating…' : 'Activating…') : (g.isActive ? '🟢 Active' : 'Inactive') }}
-                      </button>
+                      @if (g.isActive) {
+                        <button mat-raised-button color="primary"
+                                [disabled]="busy['gw_toggle_' + g.id]"
+                                (click)="toggleGiveawayActive(g.id)"
+                                matTooltip="Deactivate this draw">
+                          {{ busy['gw_toggle_' + g.id] ? 'Deactivating…' : '🟢 Active' }}
+                        </button>
+                      } @else {
+                        <button mat-stroked-button
+                                [disabled]="busy['gw_toggle_' + g.id]"
+                                (click)="toggleGiveawayActive(g.id)"
+                                matTooltip="Activate this draw">
+                          {{ busy['gw_toggle_' + g.id] ? 'Activating…' : 'Inactive' }}
+                        </button>
+                      }
                       @if (g.entryCount > 0) {
                         <button mat-stroked-button (click)="toggleEntries(g.id)">
                           {{ entriesDrawId() === g.id ? 'Hide Entries' : 'Entries (' + g.entryCount + ')' }}
                         </button>
                       }
                       @if (g.status === 'Open') {
+                        <button mat-stroked-button color="primary"
+                                [disabled]="busy['gw_notify_' + g.id]"
+                                (click)="notifyGiveaway(g.id)"
+                                matTooltip="Send email notification to all registered users">
+                          {{ busy['gw_notify_' + g.id] ? '📧 Sending…' : '📧 Notify Users' }}
+                        </button>
                         <button mat-raised-button color="warn"
                                 [disabled]="busy['gw_close_' + g.id]"
                                 (click)="closeGiveaway(g.id)">
@@ -1152,6 +1167,20 @@ export class AdminComponent implements OnInit {
       error: (e) => {
         this.busy[`gw_delete_${id}`] = false;
         this.snack.open(e?.error?.message ?? 'Delete failed', 'OK', { duration: 5000 });
+      },
+    });
+  }
+
+  notifyGiveaway(id: number): void {
+    this.busy[`gw_notify_${id}`] = true;
+    this.adminService.notifyGiveawayUsers(id).subscribe({
+      next: (res) => {
+        this.busy[`gw_notify_${id}`] = false;
+        this.snack.open(res.message, undefined, { duration: 4000 });
+      },
+      error: (e) => {
+        this.busy[`gw_notify_${id}`] = false;
+        this.snack.open(e?.error?.message ?? 'Failed to send notifications', 'OK', { duration: 5000 });
       },
     });
   }
