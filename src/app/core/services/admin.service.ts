@@ -80,12 +80,20 @@ export class AdminService {
     return this.http.get<{ teamIds: number[] }>(`${this.base}/best3rd`);
   }
 
-  getGiveaway(): Observable<any> {
-    return this.http.get<any>(`${this.base}/giveaway`);
+  getGiveaways(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/giveaway`);
+  }
+
+  getGiveaway(): Observable<any[]> {
+    return this.getGiveaways();
   }
 
   createGiveaway(matchId: number, prize: string): Observable<{ id: number }> {
     return this.http.post<{ id: number }>(`${this.base}/giveaway`, { matchId, prize });
+  }
+
+  activateGiveaway(id: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.base}/giveaway/${id}/activate`, {});
   }
 
   closeGiveaway(id: number): Observable<{ message: string }> {
