@@ -238,29 +238,47 @@ const HOW_STEPS = [
     @if (giveaway()) {
       <section class="giveaway-banner-section">
         @if (giveaway()!.status === 'Drawn') {
-          <!-- Winner announced -->
-          <div class="gw-banner gw-banner-winner">
-            <div class="gw-banner-left">
-              <span class="gw-tag">🏆 Giveaway Result</span>
-              <div class="gw-winner-announce">
-                <span class="gw-winner-label">Winner:</span>
-                <span class="gw-winner-name">{{ giveaway()!.winner?.name }}</span>
-              </div>
-              <div class="gw-prize-text">Prize: <strong>{{ giveaway()!.prize }}</strong></div>
+          <div class="gw-card gw-card-winner">
+            <div class="gw-card-top">
+              <span class="gw-live-pill">🏆 Giveaway Result</span>
             </div>
-            <a routerLink="/giveaway" class="gw-banner-btn">View Details →</a>
+            <div class="gw-winner-row">
+              <span class="gw-winner-trophy">🏆</span>
+              <div>
+                <div class="gw-winner-label">Winner</div>
+                <div class="gw-winner-name">{{ giveaway()!.winner?.name }}</div>
+              </div>
+            </div>
+            <div class="gw-prize-row">Prize: <strong>{{ giveaway()!.prize }}</strong></div>
+            <a routerLink="/giveaway" class="gw-cta-btn">View Details →</a>
           </div>
         } @else {
-          <!-- Active giveaway -->
-          <div class="gw-banner gw-banner-active">
-            <div class="gw-banner-left">
-              <span class="gw-tag gw-tag-live">🎁 Giveaway — {{ giveaway()!.status === 'Open' ? 'Open Now!' : 'Entries Closed' }}</span>
-              <div class="gw-match-line">
-                {{ giveaway()!.match.homeTeam ?? 'TBD' }} vs {{ giveaway()!.match.awayTeam ?? 'TBD' }}
-              </div>
-              <div class="gw-prize-text">Prize: <strong>{{ giveaway()!.prize }}</strong> · {{ giveaway()!.entryCount }} entries</div>
+          <div class="gw-card gw-card-active">
+            <div class="gw-card-top">
+              <span class="gw-live-pill">
+                @if (giveaway()!.status === 'Open') {
+                  <span class="gw-pulse-dot"></span> Live Giveaway
+                } @else {
+                  🔒 Entries Closed
+                }
+              </span>
+              <span class="gw-entries-pill">{{ giveaway()!.entryCount }}/50 entries</span>
             </div>
-            <a routerLink="/giveaway" class="gw-banner-btn">{{ giveaway()!.status === 'Open' ? 'Enter Now →' : 'View Giveaway →' }}</a>
+            <div class="gw-teams-row">
+              @if (giveaway()!.match.homeTeamFlag) {
+                <img [src]="giveaway()!.match.homeTeamFlag" class="gw-flag" alt="" />
+              }
+              <div class="gw-vs-block">
+                <div class="gw-match-name">{{ giveaway()!.match.homeTeam ?? 'TBD' }} vs {{ giveaway()!.match.awayTeam ?? 'TBD' }}</div>
+                <div class="gw-prize-label">Win <strong>{{ giveaway()!.prize }}</strong> — predict the score!</div>
+              </div>
+              @if (giveaway()!.match.awayTeamFlag) {
+                <img [src]="giveaway()!.match.awayTeamFlag" class="gw-flag" alt="" />
+              }
+            </div>
+            <a routerLink="/giveaway" class="gw-cta-btn">
+              {{ giveaway()!.status === 'Open' ? '🎯 Enter Giveaway Now' : 'View Giveaway →' }}
+            </a>
           </div>
         }
       </section>
@@ -805,43 +823,82 @@ const HOW_STEPS = [
     }
 
     /* ── Giveaway banner ────────────────────────────────────────── */
-    .giveaway-banner-section { padding: 0 16px; margin-bottom: -8px; }
-    .gw-banner {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 16px; padding: 16px 20px; border-radius: 14px;
-      flex-wrap: wrap;
+    .giveaway-banner-section { padding: 0 16px; margin-bottom: 4px; }
+
+    .gw-card {
+      border-radius: 20px; padding: 20px;
+      display: flex; flex-direction: column; gap: 14px;
     }
-    .gw-banner-active {
-      background: linear-gradient(135deg, #1a237e 0%, #6a1b9a 100%);
-      box-shadow: 0 4px 20px rgba(106,27,154,0.35);
+    .gw-card-active {
+      background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #4527a0 100%);
+      box-shadow: 0 6px 28px rgba(26,35,126,0.45), 0 0 0 1.5px rgba(245,197,24,0.3);
     }
-    .gw-banner-winner {
+    .gw-card-winner {
       background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
-      box-shadow: 0 4px 20px rgba(27,94,32,0.35);
+      box-shadow: 0 6px 28px rgba(27,94,32,0.4);
     }
-    .gw-banner-left { display: flex; flex-direction: column; gap: 4px; }
-    .gw-tag {
-      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.08em; color: rgba(255,255,255,0.7);
+
+    .gw-card-top {
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .gw-tag-live { color: #f48fb1; }
-    .gw-match-line { color: white; font-weight: 700; font-size: 1.05rem; }
-    .gw-winner-announce { display: flex; align-items: center; gap: 8px; }
-    .gw-winner-label { color: rgba(255,255,255,0.7); font-size: 0.9rem; }
+    .gw-live-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white; font-size: 0.75rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 4px 12px; border-radius: 20px;
+    }
+    .gw-pulse-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #00e676; flex-shrink: 0;
+      animation: gw-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes gw-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0,230,118,0.5); }
+      50%       { box-shadow: 0 0 0 5px rgba(0,230,118,0); }
+    }
+    .gw-entries-pill {
+      color: rgba(255,255,255,0.6); font-size: 0.78rem; font-weight: 600;
+    }
+
+    .gw-teams-row {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .gw-flag {
+      width: 44px; height: 30px; border-radius: 5px;
+      object-fit: cover; flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .gw-vs-block { flex: 1; }
+    .gw-match-name {
+      color: white; font-weight: 800; font-size: 1.05rem;
+      margin-bottom: 3px;
+    }
+    .gw-prize-label {
+      color: rgba(255,255,255,0.65); font-size: 0.82rem;
+    }
+    .gw-prize-label strong { color: #f5c518; }
+
+    .gw-winner-row {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .gw-winner-trophy { font-size: 2rem; }
+    .gw-winner-label { color: rgba(255,255,255,0.65); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; }
     .gw-winner-name { color: #f9a825; font-weight: 800; font-size: 1.2rem; }
-    .gw-prize-text { color: rgba(255,255,255,0.75); font-size: 0.85rem; }
-    .gw-prize-text strong { color: white; }
-    .gw-banner-btn {
-      flex-shrink: 0;
-      display: inline-block; padding: 10px 20px;
-      background: rgba(255,255,255,0.15);
-      color: white; text-decoration: none;
-      border-radius: 8px; font-weight: 700; font-size: 0.9rem;
-      border: 1px solid rgba(255,255,255,0.25);
-      transition: background 0.15s;
-      white-space: nowrap;
+    .gw-prize-row { color: rgba(255,255,255,0.7); font-size: 0.85rem; }
+    .gw-prize-row strong { color: white; }
+
+    .gw-cta-btn {
+      display: block; text-align: center;
+      padding: 13px;
+      background: linear-gradient(135deg, #f5c518, #e6a800);
+      color: #1a1a1a; text-decoration: none;
+      border-radius: 12px; font-weight: 800; font-size: 0.95rem;
+      box-shadow: 0 3px 12px rgba(245,197,24,0.4);
+      transition: all 0.15s;
     }
-    .gw-banner-btn:hover { background: rgba(255,255,255,0.25); }
+    .gw-cta-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(245,197,24,0.5); }
 
     /* ── Prizes section ─────────────────────────────────────────── */
     .prizes-section {
