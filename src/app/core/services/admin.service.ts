@@ -92,8 +92,8 @@ export class AdminService {
     return this.http.post<{ id: number }>(`${this.base}/giveaway`, { matchId, prize });
   }
 
-  activateGiveaway(id: number): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.base}/giveaway/${id}/activate`, {});
+  toggleGiveawayActive(id: number): Observable<{ isActive: boolean; message: string }> {
+    return this.http.post<{ isActive: boolean; message: string }>(`${this.base}/giveaway/${id}/toggle-active`, {});
   }
 
   closeGiveaway(id: number): Observable<{ message: string }> {

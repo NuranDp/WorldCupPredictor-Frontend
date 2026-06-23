@@ -17,10 +17,10 @@ import { AuthService } from '../../core/services/auth.service';
           <p>Loading…</p>
         </div>
 
-      } @else if (!giveaway()) {
+      } @else if (giveaways().length === 0) {
         <div class="gw-empty">
           <div class="gw-empty-icon">🎁</div>
-          <h2>No active giveaway</h2>
+          <h2>No active giveaways</h2>
           <p>Check back soon — the next giveaway will be announced here.</p>
           <a routerLink="/home" class="gw-back-btn">← Back to home</a>
         </div>
@@ -31,193 +31,152 @@ import { AuthService } from '../../core/services/auth.service';
         <div class="gw-header">
           <div class="gw-label-pill">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            Lucky winner draw
+            Lucky winner draws
           </div>
-          <h1 class="gw-title">Win the prize</h1>
-          <p class="gw-subtitle">Predict the exact scoreline — one lucky winner picked from correct predictions</p>
+          <h1 class="gw-title">Active Giveaways</h1>
+          <p class="gw-subtitle">Pick your predictions and enter to win</p>
         </div>
 
-        <!-- ── Winner card (when drawn) ── -->
-        @if (giveaway()!.status === 'Drawn' && giveaway()!.winner) {
-          <div class="gw-winner-card">
-            <div class="gw-winner-top">
-              <div class="gw-trophy-ring">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9H4.5a2.5 2.5 0 010-5H6m12 5h1.5a2.5 2.5 0 000-5H18M6 9v11m12-11v11M9 20h6M12 4v1M7.5 9A4.5 4.5 0 0012 13.5 4.5 4.5 0 0016.5 9"/></svg>
-              </div>
-              <div class="gw-winner-label">Winner</div>
-            </div>
-            <div class="gw-winner-name">{{ giveaway()!.winner!.name }}</div>
-            @if (giveaway()!.isLuckyDraw) {
-              <div class="gw-lucky-pill">🍀 Lucky draw</div>
-            } @else {
-              <div class="gw-correct-pill">🎯 Predicted the exact score</div>
-            }
-            <div class="gw-winner-prize-row">
-              <span class="gw-winner-prize-label">Prize</span>
-              <span class="gw-winner-prize-value">{{ giveaway()!.prize }}</span>
-            </div>
-            @if (giveaway()!.match.homeScore !== null) {
-              <div class="gw-final-score">
-                Final score: <strong>{{ giveaway()!.match.homeTeam }} {{ giveaway()!.match.homeScore }} – {{ giveaway()!.match.awayScore }} {{ giveaway()!.match.awayTeam }}</strong>
-              </div>
-            }
-          </div>
-        }
+        <!-- ── Giveaway cards list ── -->
+        <div class="gw-cards-list">
+          @for (giveaway of giveaways(); track giveaway.id) {
+            <div class="gw-draw-card">
 
-        <!-- ── Match card ── -->
-        <div class="gw-match-card">
-          <div class="gw-match-card-header">
-            <span class="gw-match-card-title">Match</span>
-            <span class="gw-status-pill" [class]="'gw-status-' + giveaway()!.status.toLowerCase()">
-              {{ giveaway()!.status === 'Open' ? 'Open' : giveaway()!.status === 'Closed' ? 'Closed' : 'Drawn' }}
-            </span>
-          </div>
-
-          <div class="gw-teams">
-            <div class="gw-team">
-              @if (giveaway()!.match.homeTeamFlag) {
-                <img [src]="giveaway()!.match.homeTeamFlag" class="gw-flag" alt="" />
-              } @else {
-                <div class="gw-flag-placeholder"></div>
+              <!-- Winner banner (if drawn) -->
+              @if (giveaway.status === 'Drawn' && giveaway.winner) {
+                <div class="gw-card-winner-banner">
+                  <div class="gw-card-trophy">🏆</div>
+                  <div class="gw-card-winner-info">
+                    <div class="gw-card-winner-name">{{ giveaway.winner.name }}</div>
+                    @if (giveaway.isLuckyDraw) {
+                      <span class="gw-lucky-tag">🍀 Lucky draw</span>
+                    }
+                  </div>
+                </div>
               }
-              <span class="gw-team-name">{{ giveaway()!.match.homeTeam ?? 'TBD' }}</span>
-            </div>
-            <div class="gw-vs-col">
-              @if (giveaway()!.status === 'Drawn' && giveaway()!.match.homeScore !== null) {
-                <span class="gw-ft-score">{{ giveaway()!.match.homeScore }} – {{ giveaway()!.match.awayScore }}</span>
-              } @else {
-                <span class="gw-vs-text">vs</span>
-                @if (giveaway()!.match.matchDate) {
-                  <span class="gw-match-time">{{ formatMatchTime(giveaway()!.match.matchDate!) }}</span>
+
+              <!-- Match header -->
+              <div class="gw-card-header">
+                <div class="gw-card-match-info">
+                  <span class="gw-card-status" [class]="'gw-card-status-' + giveaway.status.toLowerCase()">
+                    {{ giveaway.status }}
+                  </span>
+                  <div class="gw-card-teams">
+                    @if (giveaway.match.homeTeamFlag) {
+                      <img [src]="giveaway.match.homeTeamFlag" class="gw-card-flag" alt="" />
+                    }
+                    <span class="gw-card-team-names">
+                      {{ giveaway.match.homeTeam ?? 'TBD' }} vs {{ giveaway.match.awayTeam ?? 'TBD' }}
+                    </span>
+                    @if (giveaway.match.awayTeamFlag) {
+                      <img [src]="giveaway.match.awayTeamFlag" class="gw-card-flag" alt="" />
+                    }
+                  </div>
+                </div>
+                @if (giveaway.status === 'Drawn' && giveaway.match.homeScore !== null) {
+                  <div class="gw-card-score">{{ giveaway.match.homeScore }} – {{ giveaway.match.awayScore }}</div>
+                } @else if (giveaway.match.matchDate) {
+                  <div class="gw-card-time">{{ formatMatchTime(giveaway.match.matchDate) }}</div>
                 }
-              }
-            </div>
-            <div class="gw-team gw-team-right">
-              <span class="gw-team-name">{{ giveaway()!.match.awayTeam ?? 'TBD' }}</span>
-              @if (giveaway()!.match.awayTeamFlag) {
-                <img [src]="giveaway()!.match.awayTeamFlag" class="gw-flag" alt="" />
-              } @else {
-                <div class="gw-flag-placeholder"></div>
-              }
-            </div>
-          </div>
-
-          <div class="gw-stats-row">
-            <div class="gw-stat">
-              <div class="gw-stat-icon">🎁</div>
-              <div class="gw-stat-label">Prize</div>
-              <div class="gw-stat-value">{{ giveaway()!.prize }}</div>
-            </div>
-            <div class="gw-stat">
-              <div class="gw-stat-icon">👥</div>
-              <div class="gw-stat-label">Entries</div>
-              <div class="gw-stat-value">{{ giveaway()!.entryCount }}</div>
-            </div>
-            <div class="gw-stat">
-              <div class="gw-stat-icon">🎲</div>
-              <div class="gw-stat-label">Draw</div>
-              <div class="gw-stat-value">After FT</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ── Entry section ── -->
-        @if (giveaway()!.status === 'Open') {
-          @if (!auth.isLoggedIn()) {
-            <div class="gw-login-card">
-              <div class="gw-login-icon">🔐</div>
-              <h3>Login to enter</h3>
-              <p>You need an account to submit your prediction and enter the draw.</p>
-              <a routerLink="/login" [queryParams]="{returnUrl: '/giveaway'}" class="gw-login-btn">Log in to enter</a>
-            </div>
-          } @else if (myEntry()) {
-            <div class="gw-entered-card">
-              <div class="gw-entered-top">
-                <div class="gw-check-circle">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-                <span class="gw-entered-title">You're in the draw!</span>
-              </div>
-              <div class="gw-prediction-display">
-                <div class="gw-pred-team">
-                  @if (giveaway()!.match.homeTeamFlag) { <img [src]="giveaway()!.match.homeTeamFlag" class="gw-pred-flag" alt="" /> }
-                  <span>{{ giveaway()!.match.homeTeam ?? 'Home' }}</span>
-                </div>
-                <div class="gw-pred-score">
-                  <span class="gw-pred-num">{{ myEntry()!.homeScore }}</span>
-                  <span class="gw-pred-dash">–</span>
-                  <span class="gw-pred-num">{{ myEntry()!.awayScore }}</span>
-                </div>
-                <div class="gw-pred-team gw-pred-team-right">
-                  <span>{{ giveaway()!.match.awayTeam ?? 'Away' }}</span>
-                  @if (giveaway()!.match.awayTeamFlag) { <img [src]="giveaway()!.match.awayTeamFlag" class="gw-pred-flag" alt="" /> }
-                </div>
-              </div>
-              <p class="gw-entered-note">Good luck! Winner is drawn after the final whistle.</p>
-            </div>
-          } @else {
-            <div class="gw-form-card">
-              <div class="gw-form-header">
-                <div class="gw-form-title">Predict the final score</div>
-                <p class="gw-form-hint">Enter the exact scoreline to join the draw</p>
               </div>
 
-              <div class="gw-score-row">
-                <div class="gw-score-team-col">
-                  <div class="gw-score-team-name">
-                    @if (giveaway()!.match.homeTeamFlag) { <img [src]="giveaway()!.match.homeTeamFlag" class="gw-score-flag" alt="" /> }
-                    {{ giveaway()!.match.homeTeam ?? 'Home' }}
+              <!-- Card body -->
+              <div class="gw-card-body">
+
+                <!-- Prize and entries row -->
+                <div class="gw-card-info-row">
+                  <div class="gw-card-info-item">
+                    <span class="gw-card-label">Prize</span>
+                    <span class="gw-card-value">{{ giveaway.prize }}</span>
                   </div>
-                  <div class="gw-score-input-wrap">
-                    <button class="gw-stepper" (click)="homeScore = homeScore > 0 ? homeScore - 1 : 0" aria-label="decrease">−</button>
-                    <div class="gw-score-num">{{ homeScore }}</div>
-                    <button class="gw-stepper" (click)="homeScore = homeScore + 1" aria-label="increase">+</button>
+                  <div class="gw-card-info-item">
+                    <span class="gw-card-label">Entries</span>
+                    <span class="gw-card-value">{{ giveaway.entryCount }}/50</span>
                   </div>
                 </div>
 
-                <div class="gw-score-divider">—</div>
+                <!-- Entry form or confirmation -->
+                @if (giveaway.status === 'Open') {
+                  @if (!auth.isLoggedIn()) {
+                    <div class="gw-card-login">
+                      <p>Log in to submit your prediction</p>
+                      <a routerLink="/login" [queryParams]="{returnUrl: '/giveaway'}" class="gw-card-login-btn">Log in</a>
+                    </div>
+                  } @else if (myEntries()[giveaway.id]) {
+                    <div class="gw-card-confirmed">
+                      <div class="gw-check">✓</div>
+                      <div>
+                        <div class="gw-confirmed-title">You're in!</div>
+                        <div class="gw-confirmed-score">
+                          {{ myEntries()[giveaway.id]!.homeScore }} – {{ myEntries()[giveaway.id]!.awayScore }}
+                        </div>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="gw-card-form">
+                      <div class="gw-card-form-title">Your prediction</div>
+                      <div class="gw-card-score-inputs">
+                        <div class="gw-card-input-col">
+                          <span class="gw-card-input-team">{{ giveaway.match.homeTeam }}</span>
+                          <div class="gw-card-stepper-row">
+                            <button class="gw-card-stepper-btn" (click)="setHomeScore(giveaway.id, getHomeScore(giveaway.id) > 0 ? getHomeScore(giveaway.id) - 1 : 0)">−</button>
+                            <div class="gw-card-score-display">{{ getHomeScore(giveaway.id) }}</div>
+                            <button class="gw-card-stepper-btn" (click)="setHomeScore(giveaway.id, getHomeScore(giveaway.id) + 1)">+</button>
+                          </div>
+                        </div>
+                        <div class="gw-card-vs">−</div>
+                        <div class="gw-card-input-col">
+                          <span class="gw-card-input-team">{{ giveaway.match.awayTeam }}</span>
+                          <div class="gw-card-stepper-row">
+                            <button class="gw-card-stepper-btn" (click)="setAwayScore(giveaway.id, getAwayScore(giveaway.id) > 0 ? getAwayScore(giveaway.id) - 1 : 0)">−</button>
+                            <div class="gw-card-score-display">{{ getAwayScore(giveaway.id) }}</div>
+                            <button class="gw-card-stepper-btn" (click)="setAwayScore(giveaway.id, getAwayScore(giveaway.id) + 1)">+</button>
+                          </div>
+                        </div>
+                      </div>
 
-                <div class="gw-score-team-col gw-score-team-col-right">
-                  <div class="gw-score-team-name gw-score-team-name-right">
-                    {{ giveaway()!.match.awayTeam ?? 'Away' }}
-                    @if (giveaway()!.match.awayTeamFlag) { <img [src]="giveaway()!.match.awayTeamFlag" class="gw-score-flag" alt="" /> }
-                  </div>
-                  <div class="gw-score-input-wrap">
-                    <button class="gw-stepper" (click)="awayScore = awayScore > 0 ? awayScore - 1 : 0" aria-label="decrease">−</button>
-                    <div class="gw-score-num">{{ awayScore }}</div>
-                    <button class="gw-stepper" (click)="awayScore = awayScore + 1" aria-label="increase">+</button>
-                  </div>
-                </div>
-              </div>
+                      @if (errorMsg()[giveaway.id]) {
+                        <div class="gw-card-error">{{ errorMsg()[giveaway.id] }}</div>
+                      }
 
-              @if (errorMsg()) {
-                <div class="gw-error">{{ errorMsg() }}</div>
-              }
-
-              <button class="gw-submit-btn" [disabled]="submitting()" (click)="submitEntry()">
-                @if (submitting()) {
-                  <div class="gw-btn-spinner"></div> Submitting…
-                } @else {
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8L2 7h20l-6-4z"/></svg>
-                  Submit Prediction
+                      <button class="gw-card-submit-btn" [disabled]="submitting()[giveaway.id]" (click)="submitEntry(giveaway.id)">
+                        @if (submitting()[giveaway.id]) {
+                          <div class="gw-card-spinner"></div> Submitting…
+                        } @else {
+                          Submit Prediction
+                        }
+                      </button>
+                    </div>
+                  }
                 }
-              </button>
+
+                @if (giveaway.status === 'Closed' || giveaway.status === 'Drawn') {
+                  <div class="gw-card-closed">
+                    {{ giveaway.status === 'Closed' ? 'Entries closed' : 'Draw completed' }}
+                  </div>
+                }
+
+              </div>
             </div>
           }
-        }
+        </div>
 
         <!-- ── Footer note ── -->
-        <p class="gw-footer-note">
-          One entry per account &nbsp;·&nbsp; Minimum 100 entries required to draw &nbsp;·&nbsp;
-          1 winner from correct predictions
-        </p>
+        <div class="gw-footer-card">
+          <div class="gw-footer-rule">One entry per account, per giveaway</div>
+          <div class="gw-footer-focus">
+            <span class="gw-focus-icon">⚠️</span>
+            <span class="gw-focus-text"><strong>Minimum 50 entries</strong> required to draw</span>
+          </div>
+          <div class="gw-footer-rule">1 winner from correct predictions</div>
+        </div>
 
       }
     </div>
   `,
   styles: [`
     .gw-page {
-      max-width: 560px;
+      max-width: 600px;
       margin: 36px auto;
       padding: 0 16px 64px;
     }
@@ -272,263 +231,191 @@ import { AuthService } from '../../core/services/auth.service';
       color: #666; font-size: 0.93rem; margin: 0; max-width: 400px; margin: 0 auto;
     }
 
-    /* Winner card */
-    .gw-winner-card {
-      background: linear-gradient(135deg, #1a237e 0%, #4a148c 100%);
-      border-radius: 16px; padding: 32px 24px;
-      text-align: center; margin-bottom: 20px;
-      position: relative; overflow: hidden;
+    /* Cards list */
+    .gw-cards-list {
+      display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;
     }
-    .gw-winner-card::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(255,255,255,0.03) 20px, rgba(255,255,255,0.03) 40px);
-    }
-    .gw-winner-top {
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-      margin-bottom: 12px; position: relative;
-    }
-    .gw-trophy-ring {
-      width: 56px; height: 56px;
-      background: rgba(255,255,255,0.15);
-      border: 2px solid rgba(212,175,55,0.6);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      color: #f9a825;
-    }
-    .gw-winner-label {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: rgba(255,255,255,0.6);
-    }
-    .gw-winner-name {
-      font-size: 2rem; font-weight: 800;
-      color: #f9a825;
-      margin-bottom: 12px; position: relative;
-    }
-    .gw-lucky-pill, .gw-correct-pill {
-      display: inline-block;
-      font-size: 0.82rem; font-weight: 600;
-      padding: 4px 14px; border-radius: 20px;
-      margin-bottom: 16px; position: relative;
-    }
-    .gw-lucky-pill { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9); }
-    .gw-correct-pill { background: rgba(76,175,80,0.3); color: #a5d6a7; }
-    .gw-winner-prize-row {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      color: white; font-size: 0.95rem; position: relative; margin-bottom: 8px;
-    }
-    .gw-winner-prize-label { opacity: 0.6; }
-    .gw-winner-prize-value { font-weight: 700; color: #f9a825; }
-    .gw-final-score { font-size: 0.82rem; color: rgba(255,255,255,0.5); position: relative; }
 
-    /* Match card */
-    .gw-match-card {
+    /* Draw card */
+    .gw-draw-card {
       background: white;
       border: 1px solid #e8e8e8;
       border-radius: 16px;
       overflow: hidden;
-      margin-bottom: 16px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     }
-    .gw-match-card-header {
-      padding: 12px 20px;
+
+    .gw-card-winner-banner {
+      background: linear-gradient(135deg, #1a237e 0%, #4a148c 100%);
+      color: white;
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .gw-card-trophy { font-size: 1.5rem; }
+    .gw-card-winner-info { flex: 1; }
+    .gw-card-winner-name { font-weight: 700; font-size: 0.95rem; }
+    .gw-lucky-tag {
+      display: inline-block;
+      font-size: 0.75rem; font-weight: 700;
+      background: rgba(255,255,255,0.2);
+      color: #a5d6a7;
+      padding: 2px 8px; border-radius: 6px; margin-top: 4px;
+    }
+
+    .gw-card-header {
       background: #f8f9ff;
       border-bottom: 1px solid #eee;
+      padding: 14px 16px;
       display: flex; justify-content: space-between; align-items: center;
     }
-    .gw-match-card-title {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-      text-transform: uppercase; color: #888;
+    .gw-card-match-info { flex: 1; }
+    .gw-card-status {
+      display: inline-block;
+      font-size: 10px; font-weight: 700;
+      padding: 3px 10px; border-radius: 12px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
     }
-    .gw-status-pill {
-      font-size: 12px; font-weight: 700;
-      padding: 3px 12px; border-radius: 20px;
-    }
-    .gw-status-open   { background: #e8f5e9; color: #2e7d32; }
-    .gw-status-closed { background: #fce4ec; color: #c62828; }
-    .gw-status-drawn  { background: #e3f2fd; color: #1565c0; }
+    .gw-card-status-open { background: #e8f5e9; color: #2e7d32; }
+    .gw-card-status-closed { background: #fce4ec; color: #c62828; }
+    .gw-card-status-drawn { background: #e3f2fd; color: #1565c0; }
 
-    .gw-teams {
-      display: flex; align-items: center;
-      padding: 24px 20px 20px;
+    .gw-card-teams {
+      display: flex; align-items: center; gap: 6px;
+      font-weight: 600; font-size: 0.9rem;
     }
-    .gw-team {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; gap: 8px;
-    }
-    .gw-team-right { }
-    .gw-flag {
-      width: 52px; height: 34px;
-      object-fit: cover; border-radius: 4px;
-      border: 1px solid #eee;
-    }
-    .gw-flag-placeholder {
-      width: 52px; height: 34px;
-      background: #f5f5f5; border-radius: 4px;
-    }
-    .gw-team-name { font-size: 1rem; font-weight: 700; color: #1a1a2e; text-align: center; }
-    .gw-vs-col {
-      flex-shrink: 0; width: 80px; text-align: center;
-      display: flex; flex-direction: column; align-items: center; gap: 2px;
-    }
-    .gw-vs-text {
-      font-size: 0.8rem; font-weight: 700; color: #bbb;
-      text-transform: uppercase; letter-spacing: 0.08em;
-    }
-    .gw-match-time { font-size: 0.75rem; color: #aaa; }
-    .gw-ft-score { font-size: 1.5rem; font-weight: 800; color: #1a237e; }
+    .gw-card-flag { width: 24px; height: 16px; border-radius: 2px; }
+    .gw-card-team-names { flex: 1; }
+    .gw-card-score { font-size: 1.3rem; font-weight: 800; color: #1a237e; }
+    .gw-card-time { font-size: 0.8rem; color: #aaa; }
 
-    .gw-stats-row {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      border-top: 1px solid #f0f0f0;
-    }
-    .gw-stat {
-      padding: 14px 8px; text-align: center;
-      border-right: 1px solid #f0f0f0;
-    }
-    .gw-stat:last-child { border-right: none; }
-    .gw-stat-icon { font-size: 1.2rem; margin-bottom: 4px; }
-    .gw-stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #aaa; margin-bottom: 2px; }
-    .gw-stat-value { font-size: 0.92rem; font-weight: 700; color: #333; }
+    .gw-card-body { padding: 16px; }
 
-    /* Login */
-    .gw-login-card {
-      background: white; border: 1px solid #e8e8e8; border-radius: 16px;
-      padding: 32px 24px; text-align: center;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      margin-bottom: 16px;
+    .gw-card-info-row {
+      display: flex; gap: 20px; margin-bottom: 14px;
     }
-    .gw-login-icon { font-size: 2rem; margin-bottom: 10px; }
-    .gw-login-card h3 { margin: 0 0 8px; font-size: 1.1rem; }
-    .gw-login-card p { color: #888; margin: 0 0 20px; font-size: 0.9rem; }
-    .gw-login-btn {
-      display: inline-block; padding: 12px 28px;
+    .gw-card-info-item { }
+    .gw-card-label { display: block; font-size: 0.75rem; color: #aaa; text-transform: uppercase; margin-bottom: 2px; }
+    .gw-card-value { display: block; font-size: 0.95rem; font-weight: 700; color: #333; }
+
+    .gw-card-login {
+      background: #f8f9ff;
+      border-radius: 10px;
+      padding: 12px 14px;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+    .gw-card-login p { margin: 0 0 8px; color: #666; }
+    .gw-card-login-btn {
+      display: inline-block;
+      padding: 6px 16px;
       background: #1a237e; color: white;
-      border-radius: 10px; text-decoration: none; font-weight: 700;
-      font-size: 0.95rem;
+      border-radius: 6px; text-decoration: none; font-weight: 600;
+      font-size: 0.8rem;
     }
 
-    /* Already entered */
-    .gw-entered-card {
-      background: white; border: 1.5px solid #a5d6a7;
-      border-radius: 16px; padding: 24px 20px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      margin-bottom: 16px;
+    .gw-card-confirmed {
+      background: #e8f5e9;
+      border: 1px solid #a5d6a7;
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex; gap: 10px; align-items: center;
     }
-    .gw-entered-top {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 16px;
-    }
-    .gw-check-circle {
-      width: 36px; height: 36px; flex-shrink: 0;
-      background: #e8f5e9; border-radius: 50%;
+    .gw-check {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: #2e7d32; color: white;
+      border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      color: #2e7d32;
+      font-weight: 700;
     }
-    .gw-entered-title { font-size: 1.05rem; font-weight: 700; color: #2e7d32; }
+    .gw-confirmed-title { font-weight: 700; color: #2e7d32; font-size: 0.9rem; }
+    .gw-confirmed-score { font-size: 1rem; font-weight: 800; color: #1a237e; }
 
-    .gw-prediction-display {
-      display: flex; align-items: center;
-      background: #f8f9ff; border-radius: 10px;
-      padding: 16px; gap: 8px; margin-bottom: 12px;
+    .gw-card-form { }
+    .gw-card-form-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 10px; color: #333; }
+    .gw-card-score-inputs { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .gw-card-input-col { flex: 1; }
+    .gw-card-input-team { display: block; font-size: 0.75rem; color: #aaa; margin-bottom: 6px; font-weight: 600; }
+    .gw-card-stepper-row { display: flex; align-items: center; gap: 4px; }
+    .gw-card-stepper-btn {
+      width: 32px; height: 32px;
+      background: #f0f4ff; border: 1px solid #c5cae9;
+      color: #1a237e; border-radius: 6px;
+      font-weight: 700; cursor: pointer;
+      transition: all 0.15s;
     }
-    .gw-pred-team {
-      flex: 1; display: flex; align-items: center; gap: 6px;
-      font-size: 0.9rem; font-weight: 600; color: #333;
-    }
-    .gw-pred-team-right { justify-content: flex-end; flex-direction: row-reverse; }
-    .gw-pred-flag { width: 24px; height: 16px; object-fit: cover; border-radius: 2px; }
-    .gw-pred-score {
-      display: flex; align-items: center; gap: 6px; flex-shrink: 0;
-    }
-    .gw-pred-num {
-      width: 40px; height: 40px;
-      background: white; border: 2px solid #1a237e;
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
+    .gw-card-stepper-btn:hover { background: #1a237e; color: white; border-color: #1a237e; }
+    .gw-card-score-display {
+      flex: 1; text-align: center;
       font-size: 1.2rem; font-weight: 800; color: #1a237e;
     }
-    .gw-pred-dash { font-size: 1.1rem; font-weight: 700; color: #ccc; }
-    .gw-entered-note { font-size: 0.82rem; color: #888; text-align: center; margin: 0; }
+    .gw-card-vs { color: #ddd; font-weight: 700; flex-shrink: 0; }
 
-    /* Form card */
-    .gw-form-card {
-      background: white; border: 1px solid #e8e8e8;
-      border-radius: 16px; padding: 28px 24px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      margin-bottom: 16px;
-    }
-    .gw-form-header { margin-bottom: 24px; }
-    .gw-form-title { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
-    .gw-form-hint { color: #888; font-size: 0.85rem; margin: 0; }
-
-    .gw-score-row {
-      display: flex; align-items: center;
-      gap: 12px; margin-bottom: 24px;
-    }
-    .gw-score-team-col { flex: 1; }
-    .gw-score-team-col-right { }
-    .gw-score-team-name {
-      font-size: 0.85rem; font-weight: 600; color: #555;
-      margin-bottom: 10px; text-align: center;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-    }
-    .gw-score-team-name-right { }
-    .gw-score-flag { width: 22px; height: 15px; object-fit: cover; border-radius: 2px; border: 1px solid #eee; }
-    .gw-score-input-wrap {
-      display: flex; align-items: center; justify-content: center;
-      gap: 6px;
-    }
-    .gw-stepper {
-      width: 36px; height: 36px;
-      background: #f0f4ff; border: 1.5px solid #c5cae9;
-      color: #1a237e; border-radius: 50%;
-      font-size: 1.1rem; font-weight: 700;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s;
-    }
-    .gw-stepper:hover { background: #1a237e; color: white; border-color: #1a237e; }
-    .gw-score-num {
-      width: 60px; height: 60px;
-      background: #f8f9ff; border: 2px solid #1a237e;
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 2rem; font-weight: 800; color: #1a237e;
-      user-select: none;
-    }
-    .gw-score-divider {
-      font-size: 1.5rem; font-weight: 700; color: #ddd;
-      flex-shrink: 0; padding-top: 20px;
-    }
-
-    .gw-error {
+    .gw-card-error {
       background: #fce4ec; color: #c62828;
-      border-radius: 8px; padding: 10px 14px;
-      font-size: 0.85rem; margin-bottom: 16px;
+      border-radius: 8px; padding: 8px 12px;
+      font-size: 0.8rem; margin-bottom: 12px;
     }
 
-    .gw-submit-btn {
-      width: 100%; padding: 15px;
+    .gw-card-submit-btn {
+      width: 100%; padding: 12px;
       background: #1a237e; color: white;
-      border: none; border-radius: 12px;
-      font-size: 1rem; font-weight: 700; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
+      border: none; border-radius: 10px;
+      font-weight: 700; cursor: pointer;
+      font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
       transition: background 0.15s;
     }
-    .gw-submit-btn:hover:not(:disabled) { background: #283593; }
-    .gw-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .gw-btn-spinner {
-      width: 18px; height: 18px;
+    .gw-card-submit-btn:hover:not(:disabled) { background: #283593; }
+    .gw-card-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .gw-card-spinner {
+      width: 14px; height: 14px;
       border: 2px solid rgba(255,255,255,0.3);
       border-top-color: white;
       border-radius: 50%;
       animation: gw-spin 0.75s linear infinite;
     }
 
+    .gw-card-closed {
+      background: #f5f5f5;
+      color: #999;
+      text-align: center;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+
     /* Footer */
-    .gw-footer-note {
-      text-align: center; font-size: 0.78rem; color: #aaa;
-      margin: 8px 0 0;
+    .gw-footer-card {
+      background: linear-gradient(135deg, #fef8e7 0%, #fef5dc 100%);
+      border: 2px solid #d4af37;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .gw-footer-rule {
+      font-size: 0.8rem;
+      color: #888;
+      font-weight: 500;
+    }
+    .gw-footer-focus {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: rgba(212, 175, 55, 0.1);
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+    .gw-focus-icon {
+      font-size: 0.95rem;
+    }
+    .gw-focus-text {
+      font-size: 0.85rem;
+      color: #795548;
+      font-weight: 600;
     }
   `],
 })
@@ -537,23 +424,28 @@ export class GiveawayComponent implements OnInit {
   readonly auth = inject(AuthService);
 
   loading = signal(true);
-  giveaway = signal<GiveawayDto | null>(null);
-  myEntry = signal<MyEntry | null>(null);
-  submitting = signal(false);
-  errorMsg = signal<string | null>(null);
-
-  homeScore = 0;
-  awayScore = 0;
+  giveaways = signal<GiveawayDto[]>([]);
+  myEntries = signal<Record<number, MyEntry | null>>({});
+  submitting = signal<Record<number, boolean>>({});
+  errorMsg = signal<Record<number, string | null>>({});
+  homeScores = signal<Record<number, number>>({});
+  awayScores = signal<Record<number, number>>({});
 
   ngOnInit(): void {
     this.giveawayService.getActive().subscribe({
-      next: (g) => {
-        this.giveaway.set(g);
+      next: (list) => {
+        this.giveaways.set(list ?? []);
         this.loading.set(false);
-        if (g && this.auth.isLoggedIn()) {
-          this.giveawayService.getMyEntry(g.id).subscribe({
-            next: (e) => this.myEntry.set(e),
-            error: () => {},
+        if (this.auth.isLoggedIn()) {
+          list?.forEach(g => {
+            this.giveawayService.getMyEntry(g.id).subscribe({
+              next: (e) => {
+                const entries = this.myEntries();
+                entries[g.id] = e;
+                this.myEntries.set(entries);
+              },
+              error: () => {},
+            });
           });
         }
       },
@@ -561,26 +453,44 @@ export class GiveawayComponent implements OnInit {
     });
   }
 
-  submitEntry(): void {
-    const g = this.giveaway();
-    if (!g) return;
-    this.errorMsg.set(null);
-    this.submitting.set(true);
+  submitEntry(giveawayId: number): void {
+    const scores = this.homeScores();
+    const awayScores = this.awayScores();
+    this.errorMsg.set({ ...this.errorMsg(), [giveawayId]: null });
+    this.submitting.set({ ...this.submitting(), [giveawayId]: true });
 
-    this.giveawayService.enter(g.id, this.homeScore, this.awayScore).subscribe({
+    this.giveawayService.enter(giveawayId, scores[giveawayId] || 0, awayScores[giveawayId] || 0).subscribe({
       next: () => {
-        this.myEntry.set({
-          homeScore: this.homeScore,
-          awayScore: this.awayScore,
+        const entries = this.myEntries();
+        entries[giveawayId] = {
+          homeScore: scores[giveawayId] || 0,
+          awayScore: awayScores[giveawayId] || 0,
           submittedAt: new Date().toISOString(),
-        });
-        this.submitting.set(false);
+        };
+        this.myEntries.set(entries);
+        this.submitting.set({ ...this.submitting(), [giveawayId]: false });
       },
       error: (e) => {
-        this.errorMsg.set(e?.error?.message ?? 'Failed to submit entry.');
-        this.submitting.set(false);
+        this.errorMsg.set({ ...this.errorMsg(), [giveawayId]: e?.error?.message ?? 'Failed to submit entry.' });
+        this.submitting.set({ ...this.submitting(), [giveawayId]: false });
       },
     });
+  }
+
+  getHomeScore(id: number): number {
+    return this.homeScores()[id] || 0;
+  }
+
+  setHomeScore(id: number, val: number): void {
+    this.homeScores.set({ ...this.homeScores(), [id]: val });
+  }
+
+  getAwayScore(id: number): number {
+    return this.awayScores()[id] || 0;
+  }
+
+  setAwayScore(id: number, val: number): void {
+    this.awayScores.set({ ...this.awayScores(), [id]: val });
   }
 
   formatMatchTime(dateStr: string): string {

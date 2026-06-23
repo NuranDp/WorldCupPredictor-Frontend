@@ -1,4 +1,5 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { MatCardModule } from '@angular/material/card';
@@ -101,7 +102,7 @@ interface GiveawayMatchOption {
     @if (loading()) {
       <div class="center-spin"><mat-spinner diameter="48" /></div>
     } @else {
-      <mat-tab-group animationDuration="200ms" class="admin-tabs">
+      <mat-tab-group animationDuration="200ms" class="admin-tabs" [selectedIndex]="selectedTabIndex()" (selectedIndexChange)="onTabChange($event)">
 
         <!-- ═══ TAB 1: QUICK ACTIONS ═══════════════════════════════════════ -->
         <mat-tab label="Quick Actions">
@@ -492,14 +493,12 @@ interface GiveawayMatchOption {
                     }
 
                     <mat-card-actions>
-                      @if (!g.isActive) {
-                        <button mat-stroked-button color="primary"
-                                [disabled]="busy['gw_activate_' + g.id]"
-                                (click)="activateGiveaway(g.id)"
-                                matTooltip="Make this the draw shown on the public Giveaway page">
-                          {{ busy['gw_activate_' + g.id] ? 'Activating…' : 'Set Active' }}
-                        </button>
-                      }
+                      <button [mat-stroked-button]="!g.isActive" [mat-raised-button]="g.isActive" [color]="g.isActive ? 'primary' : ''"
+                              [disabled]="busy['gw_toggle_' + g.id]"
+                              (click)="toggleGiveawayActive(g.id)"
+                              matTooltip="Toggle visibility on public Giveaway page">
+                        {{ busy['gw_toggle_' + g.id] ? (g.isActive ? 'Deactivating…' : 'Activating…') : (g.isActive ? '🟢 Active' : 'Inactive') }}
+                      </button>
                       @if (g.entryCount > 0) {
                         <button mat-stroked-button (click)="toggleEntries(g.id)">
                           {{ entriesDrawId() === g.id ? 'Hide Entries' : 'Entries (' + g.entryCount + ')' }}
@@ -814,7 +813,10 @@ interface GiveawayMatchOption {
 export class AdminComponent implements OnInit {
   private readonly adminService = inject(AdminService);
   private readonly snack = inject(MatSnackBar);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
+  selectedTabIndex = signal(0);
   loading = signal(true);
   groups = signal<AdminGroup[]>([]);
   matches = signal<AdminMatch[]>([]);
@@ -834,6 +836,7 @@ export class AdminComponent implements OnInit {
 
   readonly roundOrder = ['RoundOf32', 'RoundOf16', 'QuarterFinal', 'SemiFinal', 'ThirdPlace', 'Final'];
   readonly groupOrder = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+  readonly tabNames = ['quick-actions', 'group-standings', 'best-3rd-qualifiers', 'match-results', 'group-schedule', 'giveaway'];
 
   giveawayMatches = computed((): GiveawayMatchOption[] => {
     const groupOptions = this.groupStageMatches()
@@ -882,6 +885,14 @@ export class AdminComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      const tabName = params['tab'];
+      const tabIndex = this.tabNames.indexOf(tabName);
+      if (tabIndex >= 0) {
+        this.selectedTabIndex.set(tabIndex);
+      }
+    });
+
     forkJoin({
       groups: this.adminService.getAdminGroups(),
       matches: this.adminService.getAdminMatches(),
@@ -1057,17 +1068,17 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  activateGiveaway(id: number): void {
-    this.busy[`gw_activate_${id}`] = true;
-    this.adminService.activateGiveaway(id).subscribe({
-      next: () => {
-        this.busy[`gw_activate_${id}`] = false;
-        this.snack.open('Giveaway set as active.', undefined, { duration: 3000 });
+  toggleGiveawayActive(id: number): void {
+    this.busy[`gw_toggle_${id}`] = true;
+    this.adminService.toggleGiveawayActive(id).subscribe({
+      next: (r) => {
+        this.busy[`gw_toggle_${id}`] = false;
+        this.snack.open(r.message, undefined, { duration: 3000 });
         this.refreshGiveaways();
       },
       error: (e) => {
-        this.busy[`gw_activate_${id}`] = false;
-        this.snack.open(e?.error?.message ?? 'Failed to activate', 'OK', { duration: 5000 });
+        this.busy[`gw_toggle_${id}`] = false;
+        this.snack.open(e?.error?.message ?? 'Failed to toggle', 'OK', { duration: 5000 });
       },
     });
   }
@@ -1159,6 +1170,12 @@ export class AdminComponent implements OnInit {
     this.adminService.getGiveawayEntries(id).subscribe({
       next: (entries) => this.giveawayEntries.set(entries),
     });
+  }
+
+  onTabChange(index: number): void {
+    this.selectedTabIndex.set(index);
+    const tabName = this.tabNames[index];
+    this.router.navigate([], { relativeTo: this.route, queryParams: { tab: tabName }, queryParamsHandling: 'merge' });
   }
 
   formatEntryTime(dateStr: string): string {

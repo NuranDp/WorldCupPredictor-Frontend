@@ -42,8 +42,8 @@ export class GiveawayService {
 
   constructor(private http: HttpClient) {}
 
-  getActive(): Observable<GiveawayDto | null> {
-    return this.http.get<GiveawayDto | null>(`${this.base}/active`);
+  getActive(): Observable<GiveawayDto[]> {
+    return this.http.get<GiveawayDto[]>(`${this.base}/active`);
   }
 
   enter(id: number, homeScore: number, awayScore: number): Observable<{ message: string }> {
