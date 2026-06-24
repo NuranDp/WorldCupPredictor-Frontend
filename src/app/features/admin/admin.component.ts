@@ -539,6 +539,12 @@ interface GiveawayMatchOption {
                                 matTooltip="Pick a random winner from all entries">
                           {{ busy['gw_lucky_' + g.id] ? 'Drawing…' : '🍀 Lucky Draw' }}
                         </button>
+                        <button mat-stroked-button
+                                [disabled]="busy['gw_archive_' + g.id]"
+                                (click)="archiveGiveaway(g.id)"
+                                matTooltip="Move to past draws without selecting a winner">
+                          {{ busy['gw_archive_' + g.id] ? 'Archiving…' : '📦 Close without Draw' }}
+                        </button>
                       }
                       <button mat-stroked-button color="warn"
                               [disabled]="busy['gw_delete_' + g.id]"
@@ -1167,6 +1173,22 @@ export class AdminComponent implements OnInit {
       error: (e) => {
         this.busy[`gw_delete_${id}`] = false;
         this.snack.open(e?.error?.message ?? 'Delete failed', 'OK', { duration: 5000 });
+      },
+    });
+  }
+
+  archiveGiveaway(id: number): void {
+    if (!confirm('Archive this giveaway with no winner?')) return;
+    this.busy[`gw_archive_${id}`] = true;
+    this.adminService.archiveGiveaway(id).subscribe({
+      next: () => {
+        this.busy[`gw_archive_${id}`] = false;
+        this.snack.open('Giveaway archived.', undefined, { duration: 3000 });
+        this.refreshGiveaways();
+      },
+      error: (e) => {
+        this.busy[`gw_archive_${id}`] = false;
+        this.snack.open(e?.error?.message ?? 'Failed to archive', 'OK', { duration: 5000 });
       },
     });
   }

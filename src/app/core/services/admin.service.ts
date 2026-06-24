@@ -115,4 +115,8 @@ export class AdminService {
   notifyGiveawayUsers(id: number): Observable<{ sent: number; message: string }> {
     return this.http.post<{ sent: number; message: string }>(`${this.base}/giveaway/${id}/notify`, {});
   }
+
+  archiveGiveaway(id: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.base}/giveaway/${id}/archive`, {});
+  }
 }
