@@ -1,6 +1,7 @@
-﻿import { Component, inject, computed, signal } from '@angular/core';
+﻿import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { PushNotificationService } from '../../core/services/push-notification.service';
 
 @Component({
   selector: 'app-shell',
@@ -114,6 +115,17 @@ import { AuthService } from '../../core/services/auth.service';
           <div class="user-area">
             <div class="user-avatar">{{ initial() }}</div>
             <span class="user-name">{{ auth.currentUser()?.name }}</span>
+            @if (push.isSupported) {
+              <button class="bell-btn" [class.bell-active]="push.isSubscribed()" [disabled]="push.isLoading()"
+                      [title]="push.isSubscribed() ? 'Notifications on — click to turn off' : 'Turn on notifications'"
+                      (click)="push.toggle()">
+                @if (push.isSubscribed()) {
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                } @else {
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                }
+              </button>
+            }
             <button class="logout-btn" title="Sign out" (click)="confirmSignOut()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -317,6 +329,17 @@ import { AuthService } from '../../core/services/auth.service';
       overflow: hidden; text-overflow: ellipsis;
       max-width: 80px; display: none;
     }
+    .bell-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px;
+      border: 1.5px solid rgba(255,255,255,0.20); border-radius: 50%;
+      background: transparent; color: rgba(255,255,255,0.65);
+      cursor: pointer; transition: all 0.16s ease;
+      flex-shrink: 0; padding: 0;
+    }
+    .bell-btn:hover { border-color: rgba(255,255,255,0.50); background: rgba(255,255,255,0.10); color: white; }
+    .bell-btn.bell-active { border-color: #f9a825; color: #f9a825; background: rgba(249,168,37,0.10); }
+    .bell-btn:disabled { opacity: 0.5; cursor: default; }
     .logout-btn {
       align-items: center; justify-content: center;
       width: 30px; height: 30px;
@@ -412,12 +435,19 @@ import { AuthService } from '../../core/services/auth.service';
     }
   `],
 })
-export class ShellComponent {
+export class ShellComponent implements OnInit {
   readonly auth = inject(AuthService);
+  readonly push = inject(PushNotificationService);
   private readonly router = inject(Router);
 
   drawerOpen      = signal(false);
   showSignOutModal = signal(false);
+
+  ngOnInit(): void {
+    if (this.auth.isLoggedIn()) {
+      this.push.checkSubscription();
+    }
+  }
 
   openDrawer()  { this.drawerOpen.set(true);  }
   closeDrawer() { this.drawerOpen.set(false); }
