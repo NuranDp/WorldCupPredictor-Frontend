@@ -73,7 +73,9 @@ export class PwaInstallPromptComponent implements OnInit {
   private deferredPrompt: any = null;
 
   ngOnInit(): void {
-    if (this.isIos() && !this.isInStandaloneMode() && !sessionStorage.getItem('pwa-ios-dismissed')) {
+    if (!this.isMobile() || this.isInstalled()) return;
+
+    if (this.isIos() && !sessionStorage.getItem('pwa-ios-dismissed')) {
       this.showIos.set(true);
       return;
     }
@@ -103,11 +105,16 @@ export class PwaInstallPromptComponent implements OnInit {
     sessionStorage.setItem('pwa-ios-dismissed', '1');
   }
 
-  private isIos(): boolean {
-    return /iphone|ipad|ipod/i.test(navigator.userAgent);
+  private isMobile(): boolean {
+    return /android|iphone|ipad|ipod|webos|blackberry|iemobile|opera mini/i.test(navigator.userAgent);
   }
 
-  private isInStandaloneMode(): boolean {
-    return ('standalone' in window.navigator) && (window.navigator as any).standalone;
+  private isInstalled(): boolean {
+    return window.matchMedia('(display-mode: standalone)').matches
+      || (window.navigator as any).standalone === true;
+  }
+
+  private isIos(): boolean {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent);
   }
 }
