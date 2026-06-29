@@ -923,12 +923,14 @@ export class BracketViewComponent implements OnInit {
     if (shareToken) this.isSharedView.set(true);
 
     forkJoin({
-      groups: this.tournamentService.getGroups(),
-      slots:  this.tournamentService.getKnockoutSlots(),
+      groups:      this.tournamentService.getGroups(),
+      slots:       this.tournamentService.getKnockoutSlots(),
+      actualBest3rd: this.tournamentService.getActualBest3rd(),
     }).subscribe({
-      next: ({ groups, slots }) => {
+      next: ({ groups, slots, actualBest3rd }) => {
         this.bracketService.loadTeams(groups);
         this.bracketService.initSlots(slots);
+        this.bracketService.setActualBest3rdTeamIds(actualBest3rd.teamIds ?? []);
         const load$ = shareToken
           ? this.bracketService.loadSharedBracket(shareToken)
           : this.bracketService.loadBracket();

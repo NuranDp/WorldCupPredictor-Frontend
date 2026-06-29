@@ -26,6 +26,10 @@ export class BracketService {
   private teamMap = signal<Record<number, Team>>({});
   // Maps teamId → groupName (e.g. 42 → 'E'), built from TournamentGroup data
   private teamGroupMap = signal<Record<number, string>>({});
+  // Admin-set actual group standings: groupName → {first, second}
+  private actualGroupStandings = signal<Record<string, { firstTeamId: number | null; secondTeamId: number | null }>>({});
+  // Admin-set actual best-3rd qualifiers (team IDs)
+  private actualBest3rdTeamIds = signal<number[]>([]);
 
   /**
    * Look up the FIFA 495-combination matrix to assign the 8 best-3rd picks to
@@ -100,18 +104,34 @@ export class BracketService {
     this.tier.set('Bronze');
     this.teamMap.set({});
     this.teamGroupMap.set({});
+    this.actualGroupStandings.set({});
+    this.actualBest3rdTeamIds.set([]);
     localStorage.removeItem(BracketService.CACHE_KEY);
   }
 
   loadTeams(groups: TournamentGroup[]): void {
     const map: Record<number, Team> = {};
     const groupMap: Record<number, string> = {};
-    groups.forEach(g => g.teams.forEach(t => {
-      map[t.id] = t;
-      groupMap[t.id] = g.name; // e.g. 'A', 'B', … 'L'
-    }));
+    const actualStandings: Record<string, { firstTeamId: number | null; secondTeamId: number | null }> = {};
+    groups.forEach(g => {
+      g.teams.forEach(t => {
+        map[t.id] = t;
+        groupMap[t.id] = g.name;
+      });
+      if (g.actualFirstTeamId || g.actualSecondTeamId) {
+        actualStandings[g.name] = {
+          firstTeamId: g.actualFirstTeamId ?? null,
+          secondTeamId: g.actualSecondTeamId ?? null,
+        };
+      }
+    });
     this.teamMap.set(map);
     this.teamGroupMap.set(groupMap);
+    this.actualGroupStandings.set(actualStandings);
+  }
+
+  setActualBest3rdTeamIds(teamIds: number[]): void {
+    this.actualBest3rdTeamIds.set(teamIds);
   }
 
   getTeam(id: number | null): Team | null {
@@ -269,8 +289,21 @@ export class BracketService {
 
     const label = side === 'home' ? pairingKey[0] : pairingKey[1];
 
-    // '3rd' → look up this slot's assigned best-3rd-place team via group-eligibility matching
+    // '3rd' → prefer actual best-3rd qualifiers when available, else user picks
     if (label === '3rd') {
+      const actualIds = this.actualBest3rdTeamIds();
+      if (actualIds.length > 0) {
+        const groupMap = this.teamGroupMap();
+        const groupToTeam: Record<string, number> = {};
+        for (const teamId of actualIds) {
+          const grp = groupMap[teamId];
+          if (grp) groupToTeam[grp] = teamId;
+        }
+        const key = Object.keys(groupToTeam).sort().join('');
+        const slotToGroup = FIFA_THIRD_PLACE_MATRIX[key];
+        const grp = slotToGroup?.[slot];
+        return this.getTeam(grp ? (groupToTeam[grp] ?? null) : null);
+      }
       const teamId = this.thirdPlaceAssignment()[slot] ?? null;
       return this.getTeam(teamId);
     }
@@ -281,6 +314,15 @@ export class BracketService {
 
     const groupName = match[1];
     const position = match[2];
+
+    // Prefer admin-set actual standings when available
+    const actualStandings = this.actualGroupStandings();
+    if (actualStandings[groupName]) {
+      const s = actualStandings[groupName];
+      const teamId = position === '1st' ? s.firstTeamId : s.secondTeamId;
+      return this.getTeam(teamId);
+    }
+
     const groupPick = this.groupPicks().find(g => g.groupName === groupName);
     if (!groupPick) return null;
 

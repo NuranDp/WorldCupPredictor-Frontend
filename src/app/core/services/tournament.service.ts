@@ -19,4 +19,8 @@ export class TournamentService {
   getKnockoutSlots(): Observable<MatchSlot[]> {
     return this.http.get<MatchSlot[]>(`${environment.apiUrl}/matches`);
   }
+
+  getActualBest3rd(): Observable<{ teamIds: number[] }> {
+    return this.http.get<{ teamIds: number[] }>(`${environment.apiUrl}/tournament/actual-best3rd`);
+  }
 }

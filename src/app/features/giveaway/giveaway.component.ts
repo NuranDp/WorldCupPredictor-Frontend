@@ -1,8 +1,12 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { GiveawayService, GiveawayDto, MyEntry } from '../../core/services/giveaway.service';
+import { TournamentService } from '../../core/services/tournament.service';
 import { AuthService } from '../../core/services/auth.service';
+import { R32_PAIRINGS } from '../../core/models/tournament.models';
+import { FIFA_THIRD_PLACE_MATRIX } from '../../core/models/third-place-matrix';
 
 @Component({
   selector: 'app-giveaway',
@@ -67,21 +71,21 @@ import { AuthService } from '../../core/services/auth.service';
 
                 <div class="gw-teams-row">
                   <div class="gw-team gw-team-home">
-                    @if (giveaway.match.homeTeamFlag) {
-                      <img [src]="giveaway.match.homeTeamFlag" class="gw-flag" alt="" />
+                    @if (getHomeFlag(giveaway)) {
+                      <img [src]="getHomeFlag(giveaway)!" class="gw-flag" alt="" />
                     } @else {
                       <div class="gw-flag-placeholder">🏳</div>
                     }
-                    <span class="gw-team-name">{{ giveaway.match.homeTeam ?? 'TBD' }}</span>
+                    <span class="gw-team-name">{{ getHomeTeam(giveaway) }}</span>
                   </div>
                   <div class="gw-vs-badge">VS</div>
                   <div class="gw-team gw-team-away">
-                    @if (giveaway.match.awayTeamFlag) {
-                      <img [src]="giveaway.match.awayTeamFlag" class="gw-flag" alt="" />
+                    @if (getAwayFlag(giveaway)) {
+                      <img [src]="getAwayFlag(giveaway)!" class="gw-flag" alt="" />
                     } @else {
                       <div class="gw-flag-placeholder">🏳</div>
                     }
-                    <span class="gw-team-name">{{ giveaway.match.awayTeam ?? 'TBD' }}</span>
+                    <span class="gw-team-name">{{ getAwayTeam(giveaway) }}</span>
                   </div>
                 </div>
               </div>
@@ -130,7 +134,7 @@ import { AuthService } from '../../core/services/auth.service';
                       <div class="gw-predict-label">Your Score Prediction</div>
                       <div class="gw-scoreboard">
                         <div class="gw-score-col">
-                          <div class="gw-score-team">{{ giveaway.match.homeTeam }}</div>
+                          <div class="gw-score-team">{{ getHomeTeam(giveaway) }}</div>
                           <div class="gw-stepper">
                             <button class="gw-step-btn" (click)="setHomeScore(giveaway.id, getHomeScore(giveaway.id) > 0 ? getHomeScore(giveaway.id) - 1 : 0)">−</button>
                             <div class="gw-score-num">{{ getHomeScore(giveaway.id) }}</div>
@@ -139,7 +143,7 @@ import { AuthService } from '../../core/services/auth.service';
                         </div>
                         <div class="gw-score-dash">:</div>
                         <div class="gw-score-col">
-                          <div class="gw-score-team">{{ giveaway.match.awayTeam }}</div>
+                          <div class="gw-score-team">{{ getAwayTeam(giveaway) }}</div>
                           <div class="gw-stepper">
                             <button class="gw-step-btn" (click)="setAwayScore(giveaway.id, getAwayScore(giveaway.id) > 0 ? getAwayScore(giveaway.id) - 1 : 0)">−</button>
                             <div class="gw-score-num">{{ getAwayScore(giveaway.id) }}</div>
@@ -477,6 +481,7 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class GiveawayComponent implements OnInit {
   private readonly giveawayService = inject(GiveawayService);
+  private readonly tournamentService = inject(TournamentService);
   readonly auth = inject(AuthService);
 
   loading = signal(true);
@@ -487,10 +492,82 @@ export class GiveawayComponent implements OnInit {
   homeScores = signal<Record<number, number>>({});
   awayScores = signal<Record<number, number>>({});
 
+  private actualGroupStandings: Record<string, { firstName: string | null; firstFlag: string | null; secondName: string | null; secondFlag: string | null }> = {};
+  private actualBest3rdTeams: { id: number; groupName: string; name: string; flagUrl: string }[] = [];
+
+  private resolveR32Entry(slotNumber: number | null, side: 'home' | 'away'): { name: string | null; flag: string | null } {
+    if (!slotNumber || slotNumber > 16) return { name: null, flag: null };
+    const pairing = R32_PAIRINGS[slotNumber];
+    if (!pairing) return { name: null, flag: null };
+    const label = side === 'home' ? pairing[0] : pairing[1];
+
+    if (label === '3rd') {
+      if (!this.actualBest3rdTeams.length) return { name: null, flag: null };
+      const groupToTeam: Record<string, { id: number; name: string; flag: string }> = {};
+      for (const t of this.actualBest3rdTeams) groupToTeam[t.groupName] = { id: t.id, name: t.name, flag: t.flagUrl };
+      const key = Object.keys(groupToTeam).sort().join('');
+      const slotToGroup = FIFA_THIRD_PLACE_MATRIX[key];
+      const grp = slotToGroup?.[slotNumber];
+      const entry = grp ? groupToTeam[grp] : null;
+      return entry ? { name: entry.name, flag: entry.flag } : { name: null, flag: null };
+    }
+
+    const m = label.match(/^([A-L]) (1st|2nd)$/);
+    if (!m) return { name: null, flag: null };
+    const s = this.actualGroupStandings[m[1]];
+    if (!s) return { name: null, flag: null };
+    return m[2] === '1st'
+      ? { name: s.firstName, flag: s.firstFlag }
+      : { name: s.secondName, flag: s.secondFlag };
+  }
+
+  resolveTeamName(slotNumber: number | null, side: 'home' | 'away'): string | null {
+    return this.resolveR32Entry(slotNumber, side).name;
+  }
+
+  getHomeTeam(g: GiveawayDto): string {
+    return g.match.homeTeam ?? this.resolveTeamName(g.match.slotNumber, 'home') ?? 'TBD';
+  }
+
+  getAwayTeam(g: GiveawayDto): string {
+    return g.match.awayTeam ?? this.resolveTeamName(g.match.slotNumber, 'away') ?? 'TBD';
+  }
+
+  getHomeFlag(g: GiveawayDto): string | null {
+    return g.match.homeTeamFlag ?? this.resolveR32Entry(g.match.slotNumber, 'home').flag;
+  }
+
+  getAwayFlag(g: GiveawayDto): string | null {
+    return g.match.awayTeamFlag ?? this.resolveR32Entry(g.match.slotNumber, 'away').flag;
+  }
+
   ngOnInit(): void {
-    this.giveawayService.getActive().subscribe({
-      next: (list) => {
-        this.giveaways.set(list ?? []);
+    forkJoin({
+      giveaways:     this.giveawayService.getActive(),
+      groups:        this.tournamentService.getGroups(),
+      actualBest3rd: this.tournamentService.getActualBest3rd(),
+    }).subscribe({
+      next: ({ giveaways, groups, actualBest3rd }) => {
+        for (const grp of groups) {
+          const teamById: Record<number, { name: string; flagUrl: string }> = {};
+          grp.teams.forEach(t => teamById[t.id] = { name: t.name, flagUrl: t.flagUrl });
+          this.actualGroupStandings[grp.name] = {
+            firstName: grp.actualFirstTeamId ? (teamById[grp.actualFirstTeamId]?.name ?? null) : null,
+            firstFlag: grp.actualFirstTeamId ? (teamById[grp.actualFirstTeamId]?.flagUrl ?? null) : null,
+            secondName: grp.actualSecondTeamId ? (teamById[grp.actualSecondTeamId]?.name ?? null) : null,
+            secondFlag: grp.actualSecondTeamId ? (teamById[grp.actualSecondTeamId]?.flagUrl ?? null) : null,
+          };
+        }
+        if (actualBest3rd.teamIds?.length) {
+          for (const id of actualBest3rd.teamIds) {
+            for (const grp of groups) {
+              const team = grp.teams.find(t => t.id === id);
+              if (team) { this.actualBest3rdTeams.push({ id, groupName: grp.name, name: team.name, flagUrl: team.flagUrl }); break; }
+            }
+          }
+        }
+        const list = giveaways ?? [];
+        this.giveaways.set(list);
         this.loading.set(false);
         if (this.auth.isLoggedIn()) {
           list?.forEach(g => {

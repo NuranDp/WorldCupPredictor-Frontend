@@ -17,6 +17,8 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
 import { AdminService, GiveawayEntry } from '../../core/services/admin.service';
+import { R32_PAIRINGS } from '../../core/models/tournament.models';
+import { FIFA_THIRD_PLACE_MATRIX } from '../../core/models/third-place-matrix';
 
 interface AdminGiveaway {
   id: number;
@@ -28,6 +30,7 @@ interface AdminGiveaway {
   createdAt: string;
   match: {
     id: number;
+    slotNumber: number | null;
     homeTeam: string | null;
     homeTeamFlag: string | null;
     awayTeam: string | null;
@@ -458,7 +461,7 @@ interface GiveawayMatchOption {
                   <mat-card class="draw-card" [class.draw-card-active]="g.isActive">
                     <mat-card-header>
                       <mat-card-title>
-                        {{ g.match.homeTeam ?? 'TBD' }} vs {{ g.match.awayTeam ?? 'TBD' }}
+                        {{ resolveGiveawayHome(g) }} vs {{ resolveGiveawayAway(g) }}
                         <span class="gw-status-badge" [class]="'gw-status-' + g.status.toLowerCase()">
                           {{ g.status }}
                         </span>
@@ -566,7 +569,7 @@ interface GiveawayMatchOption {
                   @for (g of pastGiveaways(); track g.id) {
                     <div class="past-draw-item">
                       <div class="past-draw-row">
-                        <div class="pd-match">{{ g.match.homeTeam ?? 'TBD' }} vs {{ g.match.awayTeam ?? 'TBD' }}</div>
+                        <div class="pd-match">{{ resolveGiveawayHome(g) }} vs {{ resolveGiveawayAway(g) }}</div>
                         <div class="pd-prize">{{ g.prize }}</div>
                         <div class="pd-winner">
                           🏆 <strong>{{ g.winnerName }}</strong>
@@ -859,6 +862,49 @@ export class AdminComponent implements OnInit {
   readonly groupOrder = ['A','B','C','D','E','F','G','H','I','J','K','L'];
   readonly tabNames = ['quick-actions', 'group-standings', 'best-3rd-qualifiers', 'match-results', 'group-schedule', 'giveaway'];
 
+  // Build group→{firstId, secondId} and teamId→name maps from actual standings
+  private actualStandingsMap = computed(() => {
+    const byGroup: Record<string, { firstId: number | null; secondId: number | null }> = {};
+    const teamName: Record<number, string> = {};
+    for (const g of this.groups()) {
+      byGroup[g.name] = { firstId: g.actualFirstTeamId, secondId: g.actualSecondTeamId };
+      for (const t of g.teams) teamName[t.id] = t.name;
+    }
+    return { byGroup, teamName };
+  });
+
+  private resolveR32TeamName(slot: number, side: 'home' | 'away'): string | null {
+    const pairing = R32_PAIRINGS[slot];
+    if (!pairing) return null;
+    const label = side === 'home' ? pairing[0] : pairing[1];
+    const { byGroup, teamName } = this.actualStandingsMap();
+
+    if (label === '3rd') {
+      const best3rdIds = this.selectedBest3rd();
+      if (!best3rdIds.length) return null;
+      // Build group→teamId from best3rd picks
+      const groupToTeam: Record<string, number> = {};
+      for (const id of best3rdIds) {
+        // Find which group this team belongs to
+        for (const g of this.groups()) {
+          if (g.teams.some(t => t.id === id)) { groupToTeam[g.name] = id; break; }
+        }
+      }
+      const key = Object.keys(groupToTeam).sort().join('');
+      const slotToGroup = FIFA_THIRD_PLACE_MATRIX[key];
+      const grp = slotToGroup?.[slot];
+      const teamId = grp ? groupToTeam[grp] : null;
+      return teamId ? (teamName[teamId] ?? null) : null;
+    }
+
+    const m = label.match(/^([A-L]) (1st|2nd)$/);
+    if (!m) return null;
+    const standing = byGroup[m[1]];
+    if (!standing) return null;
+    const teamId = m[2] === '1st' ? standing.firstId : standing.secondId;
+    return teamId ? (teamName[teamId] ?? null) : null;
+  }
+
   giveawayMatches = computed((): GiveawayMatchOption[] => {
     const groupOptions = this.groupStageMatches()
       .filter(m => m.status !== 'Completed')
@@ -872,14 +918,20 @@ export class AdminComponent implements OnInit {
       }));
     const knockoutOptions = this.matches()
       .filter(m => m.status !== 'Completed')
-      .map(m => ({
-        id: m.id,
-        label: `${m.homeTeamName ?? 'TBD'} vs ${m.awayTeamName ?? 'TBD'} (${this.roundLabel(m.round)})`,
-        homeTeamId: m.homeTeamId,
-        homeTeamName: m.homeTeamName,
-        awayTeamId: m.awayTeamId,
-        awayTeamName: m.awayTeamName,
-      }));
+      .map(m => {
+        const homeName = m.homeTeamName ?? (m.slotNumber !== null && m.slotNumber <= 16
+          ? this.resolveR32TeamName(m.slotNumber, 'home') : null);
+        const awayName = m.awayTeamName ?? (m.slotNumber !== null && m.slotNumber <= 16
+          ? this.resolveR32TeamName(m.slotNumber, 'away') : null);
+        return {
+          id: m.id,
+          label: `${homeName ?? 'TBD'} vs ${awayName ?? 'TBD'} (${this.roundLabel(m.round)})`,
+          homeTeamId: m.homeTeamId,
+          homeTeamName: homeName,
+          awayTeamId: m.awayTeamId,
+          awayTeamName: awayName,
+        };
+      });
     return [...groupOptions, ...knockoutOptions];
   });
 
@@ -959,6 +1011,18 @@ export class AdminComponent implements OnInit {
       Final: 'Final',
     };
     return map[round] ?? round;
+  }
+
+  resolveGiveawayHome(g: AdminGiveaway): string {
+    if (g.match.homeTeam) return g.match.homeTeam;
+    const slot = g.match.slotNumber;
+    return (slot !== null && slot <= 16) ? (this.resolveR32TeamName(slot, 'home') ?? 'TBD') : 'TBD';
+  }
+
+  resolveGiveawayAway(g: AdminGiveaway): string {
+    if (g.match.awayTeam) return g.match.awayTeam;
+    const slot = g.match.slotNumber;
+    return (slot !== null && slot <= 16) ? (this.resolveR32TeamName(slot, 'away') ?? 'TBD') : 'TBD';
   }
 
   teamName(id: number): string {

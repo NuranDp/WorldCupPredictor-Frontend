@@ -19,6 +19,8 @@ export interface TournamentGroup {
   id: number;
   name: string;
   teams: Team[];
+  actualFirstTeamId?: number | null;
+  actualSecondTeamId?: number | null;
 }
 
 export interface MatchSlot {

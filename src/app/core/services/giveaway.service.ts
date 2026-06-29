@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 
 export interface GiveawayMatch {
   id: number;
+  slotNumber: number | null;
   homeTeam: string | null;
   homeTeamFlag: string | null;
   awayTeam: string | null;

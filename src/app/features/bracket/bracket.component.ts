@@ -498,15 +498,17 @@ export class BracketComponent implements OnInit {
     const tierParam = this.route.snapshot.queryParams['tier'] as string | undefined;
 
     forkJoin({
-      groups: this.tournamentService.getGroups(),
-      slots:  this.tournamentService.getKnockoutSlots(),
-      config: this.tournamentService.getConfig(),
+      groups:        this.tournamentService.getGroups(),
+      slots:         this.tournamentService.getKnockoutSlots(),
+      config:        this.tournamentService.getConfig(),
+      actualBest3rd: this.tournamentService.getActualBest3rd(),
     }).subscribe({
-      next: ({ groups, slots, config }) => {
+      next: ({ groups, slots, config, actualBest3rd }) => {
         this.groups.set(groups);
         this.config.set(config);
         this.bracketService.loadTeams(groups);
         this.bracketService.initSlots(slots);
+        this.bracketService.setActualBest3rdTeamIds(actualBest3rd.teamIds ?? []);
 
         if (this.auth.isLoggedIn()) {
           // Restore any guest picks saved before login
